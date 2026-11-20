@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>টাকার খেলা - Earning Mini App</title>
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #0f172a; color: #f8fafc; padding: 16px; padding-bottom: 40px; }
+    .card { background: #1e293b; border-radius: 14px; padding: 16px; margin-bottom: 14px; border: 1px solid #334155; }
+    .header { display: flex; justify-content: space-between; align-items: center; }
+    .user-name { font-size: 16px; font-weight: 700; color: #38bdf8; }
+    .user-id { font-size: 12px; color: #94a3b8; }
+    .balance-box { text-align: center; background: linear-gradient(135deg, #0284c7, #2563eb); border: none; }
+    .balance-title { font-size: 13px; opacity: 0.9; }
+    .balance-amount { font-size: 32px; font-weight: 800; margin: 6px 0; }
+    h3 { font-size: 15px; margin-bottom: 10px; color: #e2e8f0; border-left: 3px solid #38bdf8; padding-left: 8px; }
+    .task-item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px; border-radius: 10px; margin-bottom: 8px; }
+    .task-info p { font-size: 14px; font-weight: 600; }
+    .task-info span { font-size: 12px; color: #4ade80; }
+    button { background: #22c55e; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
+    button:disabled { background: #475569; cursor: not-allowed; }
+    .btn-blue { background: #3b82f6; width: 100%; padding: 11px; margin-top: 8px; font-size: 14px; }
+    input, select { width: 100%; padding: 10px; margin-top: 8px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 14px; }
+    .ref-box { display: flex; gap: 6px; margin-top: 8px; }
+    .ref-box input { margin-top: 0; font-size: 12px; }
+    .status-msg { font-size: 12px; color: #fbbf24; margin-top: 8px; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <!-- User Profile -->
+  <div class="card header">
+    <div>
+      <div class="user-name" id="uName">লোড হচ্ছে...</div>
+      <div class="user-id" id="uId">ID: ---</div>
+    </div>
+    <button onclick="claimDaily()" id="dailyBtn">ডেইলি বোনাস (+৫৳)</button>
+  </div>
+
+  <!-- Balance -->
+  <div class="card balance-box">
+    <div class="balance-title">আপনার বর্তমান ব্যালেন্স</div>
+    <div class="balance-amount">৳ <span id="balance">0.00</span></div>
+    <div style="font-size: 12px; opacity: 0.85;">মিনিমাম উইথড্র: ৳ ২০০</div>
+  </div>
+
+  <!-- Tasks -->
+  <div class="card">
+    <h3>কাজ করে আয় করুন (Tasks)</h3>
+
+    <div class="task-item">
+      <div class="task-info">
+        <p>অফিসিয়াল টেলিগ্রাম চ্যানেলে জয়েন</p>
+        <span>পুরস্কার: +১০.০০ টাকা</span>
+      </div>
+      <button id="task1Btn" onclick="completeTask('task1', 10, 'https://t.me/telegram')">জয়েন করুন</button>
+    </div>
+
+    <div class="task-item">
+      <div class="task-info">
+        <p>বিজ্ঞাপন দেখুন (Watch Ad)</p>
+        <span>পুরস্কার: +২.০০ টাকা</span>
+      </div>
+      <button onclick="watchAd()">দেখুন</button>
+    </div>
+
+    <div class="task-item">
+      <div class="task-info">
+        <p>YouTube ভিডিও ভিজিট</p>
+        <span>পুরস্কার: +৫.০০ টাকা</span>
+      </div>
+      <button id="task2Btn" onclick="completeTask('task2', 5, 'https://youtube.com')">ভিজিট</button>
+    </div>
+  </div>
+
+  <!-- Referral -->
+  <div class="card">
+    <h3>রেফার করে আয় (প্রতি রেফারে ১৫৳)</h3>
+    <p style="font-size: 12px; color: #94a3b8;">নিচের লিঙ্কটি বন্ধুদের শেয়ার করুন:</p>
+    <div class="ref-box">
+      <input type="text" id="refLink" readonly value="লোড হচ্ছে..." />
+      <button onclick="copyRef()">কপি</button>
+    </div>
+  </div>
+
+  <!-- Withdraw -->
+  <div class="card">
+    <h3>টাকা উত্তোলন (Withdraw)</h3>
+    <select id="method">
+      <option value="Bkash">বিকাশ (Bkash)</option>
+      <option value="Nagad">নগদ (Nagad)</option>
+    </select>
+    <input type="number" id="accountNum" placeholder="আপনার বিকাশ/নগদ নম্বর দিন" />
+    <input type="number" id="withdrawAmount" placeholder="টাকার পরিমাণ (সর্বনিম্ন ২০০)" />
+    <button class="btn-blue" onclick="submitWithdraw()">উইথড্র রিকোয়েস্ট পাঠান</button>
+    <div class="status-msg" id="msg"></div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const user = tg.initDataUnsafe?.user || { id: "12345678", first_name: "Demo User" };
+    const userId = String(user.id);
+    const BOT_USERNAME = "YourBotUsername";
+
+    document.getElementById("uName").innerText = user.first_name;
+    document.getElementById("uId").innerText = "ID: " + userId;
+    document.getElementById("refLink").value = `https://t.me/${BOT_USERNAME}?start=${userId}`;
+
+    const userRef = doc(db, "users", userId);
+
+    async function initUser() {
+      const snap = await getDoc(userRef);
+      if (!snap.exists()) {
+        await setDoc(userRef, {
+          name: user.first_name,
+          balance: 0,
+          completedTasks: [],
+          lastDaily: ""
+        });
+      }
+      refreshUI();
+    }
+
+    async function refreshUI() {
+      const snap = await getDoc(userRef);
+      if (snap.exists()) {
+        const data = snap.data();
+        document.getElementById("balance").innerText = Number(data.balance).toFixed(2);
+        const tasks = data.completedTasks || [];
+        if (tasks.includes("task1")) document.getElementById("task1Btn").disabled = true;
+        if (tasks.includes("task2")) document.getElementById("task2Btn").disabled = true;
+      }
+    }
+
+    window.claimDaily = async () => {
+      const today = new Date().toDateString();
+      const snap = await getDoc(userRef);
+      if (snap.data().lastDaily === today) {
+        alert("আজকের ডেইলি বোনাস ইতিমধ্যে নিয়েছেন!");
+        return;
+      }
+      await updateDoc(userRef, { balance: increment(5), lastDaily: today });
+      alert("অভিনন্দন! ৫ টাকা বোনাস যোগ হয়েছে।");
+      refreshUI();
+    };
+
+    window.completeTask = async (taskId, reward, url) => {
+      window.open(url, "_blank");
+      const snap = await getDoc(userRef);
+      const tasks = snap.data().completedTasks || [];
+      if (tasks.includes(taskId)) return;
+
+      tasks.push(taskId);
+      await updateDoc(userRef, {
+        balance: increment(reward),
+        completedTasks: tasks
+      });
+      alert(`কাজ সম্পন্ন! +${reward} টাকা যোগ হয়েছে।`);
+      refreshUI();
+    };
+
+    window.watchAd = async () => {
+      alert("বিজ্ঞাপন লোড হচ্ছে... ৫ সেকেন্ড অপেক্ষা করুন।");
+      setTimeout(async () => {
+        await updateDoc(userRef, { balance: increment(2) });
+        alert("বিজ্ঞাপন দেখার জন্য +২ টাকা যোগ হয়েছে!");
+        refreshUI();
+      }, 5000);
+    };
+
+    window.copyRef = () => {
+      const copyText = document.getElementById("refLink");
+      copyText.select();
+      navigator.clipboard.writeText(copyText.value);
+      alert("রেফারেল লিঙ্ক কপি হয়েছে!");
+    };
+
+    window.submitWithdraw = async () => {
+      const method = document.getElementById("method").value;
+      const number = document.getElementById("accountNum").value;
+      const amount = Number(document.getElementById("withdrawAmount").value);
+      const snap = await getDoc(userRef);
+      const currentBal = snap.data().balance;
+
+      if (!number || amount < 200) {
+        alert("সঠিক নম্বর দিন এবং কমপক্ষে ২০০ টাকা লিখুন।");
+        return;
+      }
+      if (amount > currentBal) {
+        alert("আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই!");
+        return;
+      }
+
+      await updateDoc(userRef, { balance: increment(-amount) });
+      await addDoc(collection(db, "withdrawals"), {
+        userId: userId,
+        name: user.first_name,
+        method: method,
+        number: number,
+        amount: amount,
+        status: "Pending",
+        date: new Date().toISOString()
+      });
+
+      document.getElementById("msg").innerText = "উইথড্র রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!";
+      refreshUI();
+    };
+
+    initUser();
+  </script>
+</body>
+  </html>
