@@ -78,7 +78,7 @@
 
   <!-- Referral -->
   <div class="card">
-    <h3>রেফার করে আয় (প্রতি রেফারে ১৫৳)</h3>
+    <h3>রেফার করে আয় (প্রতি রেফারে ৫০৳)</h3>
     <p style="font-size: 12px; color: #94a3b8;">নিচের লিঙ্কটি বন্ধুদের শেয়ার করুন:</p>
     <div class="ref-box">
       <input type="text" id="refLink" readonly value="লোড হচ্ছে..." />
@@ -105,12 +105,12 @@
     import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyBbB9y_3g4Zmx-YGweWl-GDzsbs0at7opA"
+      authDomain: "fire-earn-app.firebaseapp.com"
+      projectId: "fire-earn-app"
+      storageBucket: "fire-earn-app.firebasestorage.app"
+      messagingSenderId: "518377603038"
+      appId: "1:518377603038:web:b7798e524bdd035a94a74f"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -121,11 +121,11 @@
 
     const user = tg.initDataUnsafe?.user || { id: "12345678", first_name: "Demo User" };
     const userId = String(user.id);
-    const BOT_USERNAME = "YourBotUsername";
+    const BOT_USERNAME = "Fireearnbdbot";
 
     document.getElementById("uName").innerText = user.first_name;
     document.getElementById("uId").innerText = "ID: " + userId;
-    document.getElementById("refLink").value = `https://t.me/${BOT_USERNAME}?start=${userId}`;
+    document.getElementById("refLink").value = `https://t.me/${BOTUSERNAME}?start=${userId}`;
 
     const userRef = doc(db, "users", userId);
 
@@ -161,7 +161,7 @@
         return;
       }
       await updateDoc(userRef, { balance: increment(5), lastDaily: today });
-      alert("অভিনন্দন! ৫ টাকা বোনাস যোগ হয়েছে।");
+      alert("অভিনন্দন! ১০ টাকা বোনাস যোগ হয়েছে।");
       refreshUI();
     };
 
@@ -184,7 +184,7 @@
       alert("বিজ্ঞাপন লোড হচ্ছে... ৫ সেকেন্ড অপেক্ষা করুন।");
       setTimeout(async () => {
         await updateDoc(userRef, { balance: increment(2) });
-        alert("বিজ্ঞাপন দেখার জন্য +২ টাকা যোগ হয়েছে!");
+        alert("বিজ্ঞাপন দেখার জন্য +৫ টাকা যোগ হয়েছে!");
         refreshUI();
       }, 5000);
     };
