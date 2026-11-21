@@ -190,7 +190,7 @@
         const data = snap.data();
         const bal = Number(data.balance || 0);
         if (balanceEl) {
-          balanceEl.innerText = `৳ ${bal.toFixed(2)}`;
+          balanceEl.innerText = ` ${bal.toFixed(2)}`;
         }
       }
     } catch (err) {
