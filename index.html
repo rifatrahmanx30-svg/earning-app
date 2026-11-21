@@ -78,7 +78,7 @@
 
   <!-- Referral -->
   <div class="card">
-    <h3>রেফার করে আয় (প্রতি রেফারে ৫০৳)</h3>
+    <h3>রেফার করে আয় (প্রতি রেফারে 15৳)</h3>
     <p style="font-size: 12px; color: #94a3b8;">নিচের লিঙ্কটি বন্ধুদের শেয়ার করুন:</p>
     <div class="ref-box">
       <input type="text" id="refLink" readonly value="লোড হচ্ছে..." />
@@ -101,75 +101,137 @@
 
   <!-- Firebase SDK -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    addDoc,
+    collection,
+    increment
+  } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBbB9y_3g4Zmx-YGweWl-GDzsbs0at7opA"
-      authDomain: "fire-earn-app.firebaseapp.com"
-      projectId: "fire-earn-app"
-      storageBucket: "fire-earn-app.firebasestorage.app"
-      messagingSenderId: "518377603038"
-      appId: "1:518377603038:web:b7798e524bdd035a94a74f"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyBbB9y_3g4Zmx-YGweWl-GZsbs0at7opA",
+    authDomain: "fire-earn-app.firebaseapp.com",
+    projectId: "fire-earn-app",
+    storageBucket: "fire-earn-app.firebasestorage.app",
+    messagingSenderId: "518377603038",
+    appId: "1:518377603038:web:b7798e524bdd035a94a74f"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    const tg = window.Telegram.WebApp;
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
     tg.expand();
+  }
 
-    const user = tg.initDataUnsafe?.user || { id: "12345678", first_name: "Demo User" };
-    const userId = String(user.id);
-    const BOT_USERNAME = "Fireearnbdbot";
+  const user = tg?.initDataUnsafe?.user || { id: "12345678", first_name: "Test User" };
+  const userId = String(user.id);
+  const BOT_USERNAME = "Fireearnbdbot";
 
-    document.getElementById("uName").innerText = user.first_name;
-    document.getElementById("uId").innerText = "ID: " + userId;
-    document.getElementById("refLink").value = `https://t.me/${BOTUSERNAME}?start=${userId}`;
+  const uNameEl = document.getElementById("uName");
+  const uIdEl = document.getElementById("uId");
+  const refLinkEl = document.getElementById("refLink");
+  const balanceEl = document.getElementById("balance");
+  const msgEl = document.getElementById("msg");
 
-    const userRef = doc(db, "users", userId);
+  if (uNameEl) uNameEl.innerText = user.first_name || "User";
+  if (uIdEl) uIdEl.innerText = "ID: " + userId;
+  if (refLinkEl) {
+    refLinkEl.value = `https://t.me/${BOT_USERNAME}?startapp=${userId}`;
+  }
 
-    async function initUser() {
+  const userRef = doc(db, "users", userId);
+  let adBusy = false;
+
+  async function initUser() {
+    try {
       const snap = await getDoc(userRef);
       if (!snap.exists()) {
+        const rawStart = tg?.initDataUnsafe?.start_param || "";
+        const refId = String(rawStart).replace(/^ref_/, "").trim();
+
         await setDoc(userRef, {
-          name: user.first_name,
+          name: user.first_name || "User",
           balance: 0,
           completedTasks: [],
-          lastDaily: ""
+          lastDaily: "",
+          referredBy: refId && refId !== userId ? refId : "",
+          createdAt: new Date().toISOString()
         });
-      }
-      refreshUI();
-    }
 
-    async function refreshUI() {
+        if (refId && refId !== userId) {
+          const referrerRef = doc(db, "users", refId);
+          const refSnap = await getDoc(referrerRef);
+          if (refSnap.exists()) {
+            await updateDoc(referrerRef, {
+              balance: increment(50),
+              referralCount: increment(1)
+            });
+          }
+        }
+      }
+      await refreshUI();
+    } catch (err) {
+      console.error("initUser error:", err);
+      if (msgEl) msgEl.innerText = "ডাটাবেজ সংযোগে সমস্যা হচ্ছে।";
+    }
+  }
+
+  async function refreshUI() {
+    try {
       const snap = await getDoc(userRef);
       if (snap.exists()) {
         const data = snap.data();
-        document.getElementById("balance").innerText = Number(data.balance).toFixed(2);
-        const tasks = data.completedTasks || [];
-        if (tasks.includes("task1")) document.getElementById("task1Btn").disabled = true;
-        if (tasks.includes("task2")) document.getElementById("task2Btn").disabled = true;
+        const bal = Number(data.balance || 0);
+        if (balanceEl) {
+          balanceEl.innerText = `৳ ${bal.toFixed(2)}`;
+        }
       }
+    } catch (err) {
+      console.error("refreshUI error:", err);
     }
+  }
 
-    window.claimDaily = async () => {
+  window.claimDaily = async () => {
+    try {
       const today = new Date().toDateString();
       const snap = await getDoc(userRef);
+      if (!snap.exists()) return;
+
       if (snap.data().lastDaily === today) {
         alert("আজকের ডেইলি বোনাস ইতিমধ্যে নিয়েছেন!");
         return;
       }
-      await updateDoc(userRef, { balance: increment(5), lastDaily: today });
-      alert("অভিনন্দন! ১০ টাকা বোনাস যোগ হয়েছে।");
-      refreshUI();
-    };
 
-    window.completeTask = async (taskId, reward, url) => {
-      window.open(url, "_blank");
+      await updateDoc(userRef, {
+        balance: increment(5),
+        lastDaily: today
+      });
+      alert("অভিনন্দন! +৫ টাকা বোনাস যোগ হয়েছে।");
+      await refreshUI();
+    } catch (err) {
+      console.error("claimDaily error:", err);
+      alert("বোনাস যোগ করতে সমস্যা হয়েছে।");
+    }
+  };
+
+  window.completeTask = async (taskId, reward, url) => {
+    try {
+      if (url) window.open(url, "_blank");
       const snap = await getDoc(userRef);
+      if (!snap.exists()) return;
+
       const tasks = snap.data().completedTasks || [];
-      if (tasks.includes(taskId)) return;
+      if (tasks.includes(taskId)) {
+        alert("এই কাজটি আগেই সম্পন্ন করেছেন!");
+        return;
+      }
 
       tasks.push(taskId);
       await updateDoc(userRef, {
@@ -177,57 +239,41 @@
         completedTasks: tasks
       });
       alert(`কাজ সম্পন্ন! +${reward} টাকা যোগ হয়েছে।`);
-      refreshUI();
-    };
+      await refreshUI();
+    } catch (err) {
+      console.error("completeTask error:", err);
+      alert("টাস্ক আপডেট করতে সমস্যা হয়েছে।");
+    }
+  };
 
-    window.watchAd = async () => {
-      alert("বিজ্ঞাপন লোড হচ্ছে... ৫ সেকেন্ড অপেক্ষা করুন।");
-      setTimeout(async () => {
-        await updateDoc(userRef, { balance: increment(2) });
-        alert("বিজ্ঞাপন দেখার জন্য +৫ টাকা যোগ হয়েছে!");
-        refreshUI();
-      }, 5000);
-    };
+  window.watchAd = async () => {
+    if (adBusy) {
+      alert("আগে একটি বিজ্ঞাপন চলছে, অনুগ্রহ করে অপেক্ষা করুন।");
+      return;
+    }
+    adBusy = true;
+    alert("বিজ্ঞাপন লোড হচ্ছে... ৫ সেকেন্ড অপেক্ষা করুন।");
 
-    window.copyRef = () => {
-      const copyText = document.getElementById("refLink");
-      copyText.select();
-      navigator.clipboard.writeText(copyText.value);
-      alert("রেফারেল লিঙ্ক কপি হয়েছে!");
-    };
-
-    window.submitWithdraw = async () => {
-      const method = document.getElementById("method").value;
-      const number = document.getElementById("accountNum").value;
-      const amount = Number(document.getElementById("withdrawAmount").value);
-      const snap = await getDoc(userRef);
-      const currentBal = snap.data().balance;
-
-      if (!number || amount < 200) {
-        alert("সঠিক নম্বর দিন এবং কমপক্ষে ২০০ টাকা লিখুন।");
-        return;
+    setTimeout(async () => {
+      try {
+        await updateDoc(userRef, {
+          balance: increment(2)
+        });
+        alert("বিজ্ঞাপন দেখার জন্য +২ টাকা যোগ হয়েছে!");
+        await refreshUI();
+      } catch (err) {
+        console.error("watchAd error:", err);
+        alert("অ্যাড রিওয়ার্ড যোগ করতে সমস্যা হয়েছে।");
+      } finally {
+        adBusy = false;
       }
-      if (amount > currentBal) {
-        alert("আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই!");
-        return;
-      }
+    }, 5000);
+  };
 
-      await updateDoc(userRef, { balance: increment(-amount) });
-      await addDoc(collection(db, "withdrawals"), {
-        userId: userId,
-        name: user.first_name,
-        method: method,
-        number: number,
-        amount: amount,
-        status: "Pending",
-        date: new Date().toISOString()
-      });
-
-      document.getElementById("msg").innerText = "উইথড্র রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!";
-      refreshUI();
-    };
-
-    initUser();
-  </script>
-</body>
-  </html>
+  window.copyRef = async () => {
+    try {
+      if (!refLinkEl || !refLinkEl.value) return;
+      refLinkEl.select();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(refLinkEl.valu-fromaskIhtm>
+tml>
