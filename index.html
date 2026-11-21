@@ -275,5 +275,63 @@
       if (!refLinkEl || !refLinkEl.value) return;
       refLinkEl.select();
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(refLinkEl.valu-fromaskIhtm>
-tml>
+        await navigator.clipboard.writeText(refLinkEl.value);
+      } else {
+        document.execCommand("copy");
+      }
+      alert("রেফারেল লিংক কপি হয়েছে!");
+    } catch (err) {
+      alert("লিংক কপি করা যায়নি, ম্যানুয়ালি কপি করুন।");
+    }
+  };
+
+  window.submitWithdraw = async () => {
+    try {
+      const method = document.getElementById("method")?.value || "Bkash";
+      const number = document.getElementById("accountNum")?.value?.trim() || "";
+      const amount = Number(document.getElementById("withdrawAmount")?.value || 0);
+
+      const snap = await getDoc(userRef);
+      if (!snap.exists()) return;
+
+      const currentBal = Number(snap.data().balance || 0);
+
+      if (!number || number.length < 11 || isNaN(amount) || amount < 200) {
+        alert("সঠিক নম্বর (অন্তত ১১ ডিজিট) দিন এবং কমপক্ষে ২০০ টাকা লিখুন।");
+        return;
+      }
+
+      if (amount > currentBal) {
+        alert("আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই!");
+        return;
+      }
+
+      await updateDoc(userRef, {
+        balance: increment(-amount)
+      });
+
+      await addDoc(collection(db, "withdrawals"), {
+        userId: userId,
+        name: user.first_name || "User",
+        method: method,
+        number: number,
+        amount: amount,
+        status: "Pending",
+        date: new Date().toISOString()
+      });
+
+      if (msgEl) {
+        msgEl.innerText = "উইথড্র রিকোয়েস্ট সফলভাবে জমা হয়েছে (Pending)।";
+      }
+      alert("আপনার উইথড্র রিকোয়েস্ট জমা হয়েছে!");
+      await refreshUI();
+    } catch (err) {
+      console.error("submitWithdraw error:", err);
+      alert("উইথড্র জমা দিতে সমস্যা হয়েছে।");
+    }
+  };
+
+  initUser();
+</script>
+</body>
+</html>
