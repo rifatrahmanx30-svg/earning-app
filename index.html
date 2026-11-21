@@ -328,7 +328,30 @@
         status: "Pending",
         date: new Date().toISOString()
       });
+const BOT_TOKEN = 9033467245:AAGJTmt1Fvl4aCGkV_eiWqX7wvj3j5BSR4s
+      const ADMIN_CHAT_ID = 8592698219
 
+      const notifyText =
+        `🔔 নতুন উইথড্র রিকোয়েস্ট!\n` +
+        `নাম: ${user.first_name || "User"}\n` +
+        `ID: ${userId}\n` +
+        `মেথড: ${method}\n` +
+        `নম্বর: ${number}\n` +
+        `পরিমাণ: ${amount} টাকা\n` +
+        `স্ট্যাটাস: Pending`;
+
+      try {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: ADMIN_CHAT_ID,
+            text: notifyText
+          })
+        });
+      } catch (notifyErr) {
+        console.error("Telegram notify error:", notifyErr);
+        }
       if (msgEl) {
         msgEl.innerText = "উইথড্র রিকোয়েস্ট সফলভাবে জমা হয়েছে (Pending)।";
       }
