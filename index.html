@@ -528,13 +528,16 @@ window.submitMiniTask = async function() {
 };
 
 updateTaskLimitLabels();
-    const AD_REWARD = 0.10;
+const AD_REWARD = 0.10;
 const DAILY_AD_LIMIT = 50;
 let adBusy = false;
 
 function getTodayAdStr() {
   const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 function watchAd() {
@@ -549,7 +552,6 @@ function watchAd() {
   const uid = tgUser?.id ? String(tgUser.id) : null;
   const keyId = uid || "guest";
 
-  // দৈনিক ৫০ লিমিট চেক
   const today = getTodayAdStr();
   const savedDate = localStorage.getItem("adDate_" + keyId);
   let count = Number(localStorage.getItem("adCount_" + keyId) || 0);
@@ -567,13 +569,11 @@ function watchAd() {
 
   adBusy = true;
 
-  // Rewarded interstitial (Zone 12325695)
   show_12325695({
     ymid: keyId,
     requestVar: "watch_ad_task"
   })
     .then(async (result) => {
-      // পুরো অ্যাড না দেখলে রিওয়ার্ড যোগ হবে না
       if (result && result.reward_event_type === "valued") {
         count += 1;
         localStorage.setItem("adDate_" + keyId, today);
@@ -601,7 +601,7 @@ function watchAd() {
       adBusy = false;
     });
 }
-</script>
+   </script>
   <div id="miniTaskModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; padding:16px;">
   <div style="background:#161b22; color:#fff; width:100%; max-width:380px; border-radius:12px; padding:18px; border:1px solid #30363d;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
