@@ -581,14 +581,14 @@ function watchAd() {
 
         if (uid && typeof db !== "undefined" && typeof updateDoc === "function" && typeof doc === "function") {
           await updateDoc(doc(db, "users", uid), {
-            balance: typeof increment === "function" ? increment(AD_REWARD) : AD_REWARD
+           balance: typeof increment === "function" ? increment(AD_REWARD) : AD_REWARD
           });
           if (typeof refreshUI === "function") {
             await refreshUI();
           }
-        }
+        
 
-        alert(`পুরো অ্যাড দেখার জন্য +${AD_REWARD.toFixed(2)} টাকা যোগ হয়েছে (${count}/${DAILY_AD_LIMIT})।`);
+      alert(`পুরো অ্যাড দেখার জন্য +${AD_REWARD.toFixed(2)} টাকা যোগ হয়েছে (${count}/${DAILY_AD_LIMIT})।`);
       } else {
         alert("পুরো অ্যাড না দেখলে রিওয়ার্ড যোগ হবে না!");
       }
