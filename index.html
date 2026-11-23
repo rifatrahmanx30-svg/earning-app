@@ -517,7 +517,7 @@ window.submitMiniTask = async function() {
       isTaskBusy = false;
       btn.disabled = false;
       if (getUserTaskCount(type) < DAILY_TASK_LIMIT) openMiniTask(type);
-      else { closeMiniTask(); alert(`আজকের ${DAILY_TASK_LIMIT}টি টাস্ক শেষ!`); }
+    else { closeMiniTask(); alert("আজকের টাস্ক লিমিট শেষ!"); }
     }, 800);
   } catch (e) {
     console.error(e);
