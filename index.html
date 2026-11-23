@@ -493,35 +493,40 @@ window.submitMiniTask = async function() {
   statusEl.innerText = "লোডিং হচ্ছে...";
   await new Promise((r) => setTimeout(r, 2000));
 
-  const ok = type === "captcha"
+const ok = type === "captcha"
   ? ans.toUpperCase() === currentAnswer.toUpperCase()
   : ans.toLowerCase() === currentAnswer.toLowerCase();
-  if (!ok) {
-    isTaskBusy = false;
-    btn.disabled = false;
-    statusEl.style.color = "#f85149";
-    statusEl.innerText = "উত্তর ভুল হয়েছে! কোনো টাকা যোগ হয়নি।";
-    setTimeout(() => { if (activeTaskType === type) openMiniTask(type); }, 900);
-    return;
-  }
 
-  try {
-    const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-    const uid = tgUser?.id ? String(tgUser.id) : null;
-    if (uid && typeof db !== "undefined") {
-      await updateDoc(doc(db, "users", uid), { balance: increment(TASK_REWARD) });
-      if (typeof refreshUI === "function") await refreshUI();
-    }
-    incrementUserTaskCount(type);
-    statusEl.style.color = "#3fb950";
-    statusEl.innerText = "সঠিক উত্তর! +১.০০ টাকা যোগ হয়েছে।";
-    setTimeout(() => {
-      isTaskBusy = false;
-      btn.disabled = false;
-      if (getUserTaskCount(type) < DAILY_TASK_LIMIT) openMiniTask(type);
-    else { closeMiniTask(); alert("আজকের টাস্ক লিমিট শেষ!"); }
-    }, 800);
-  } catch (e) {
+if (!ok) {
+  isTaskBusy = false;
+  btn.disabled = false;
+  statusEl.style.color = "#f85149";
+  statusEl.innerText = "উত্তর ভুল হয়েছে!";
+  return;
+}
+
+try {
+  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+  const uid = tgUser?.id ? String(tgUser.id) : null;
+  if (uid && typeof db !== "undefined") {
+    await updateDoc(doc(db, "users", uid), { balance: increment(TASK_REWARD) });
+    if (typeof refreshUI === "function") await refreshUI();
+  }
+  incrementUserTaskCount(type);
+  statusEl.style.color = "#3fb950";
+  statusEl.innerText = "সঠিক উত্তর! রিওয়ার্ড যোগ হয়েছে।";
+  isTaskBusy = false;
+  btn.disabled = false;
+  closeMiniTask();
+} catch (e) {
+  console.error(e);
+  isTaskBusy = false;
+  btn.disabled = false;
+  statusEl.style.color = "#f85149";
+  statusEl.innerText = "সমস্যা হয়েছে, আবার চেষ্টা করুন।";
+}
+  
+ } catch catch (e) {
     console.error(e);
     isTaskBusy = false;
     btn.disabled = false;
