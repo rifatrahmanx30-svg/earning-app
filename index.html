@@ -493,7 +493,9 @@ window.submitMiniTask = async function() {
   statusEl.innerText = "লোডিং হচ্ছে...";
   await new Promise((r) => setTimeout(r, 2000));
 
-  const ok = type === "captcha" ? ans.toUpperCase() === currentAnswer.toUpperCase() : ans.toLowerCase() === currentAnswer.toLowerCase();
+  const ok = type === "captcha"
+  ? ans.toUpperCase() === currentAnswer.toUpperCase()
+  : ans.toLowerCase() === currentAnswer.toLowerCase();
   if (!ok) {
     isTaskBusy = false;
     btn.disabled = false;
