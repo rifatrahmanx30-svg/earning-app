@@ -583,26 +583,25 @@ function watchAd() {
 
         if (uid && typeof db !== "undefined" && typeof updateDoc === "function" && typeof doc === "function") {
           await updateDoc(doc(db, "users", uid), {
-           balance: typeof increment === "function" ? increment(AD_REWARD) : AD_REWARD
+            balance: typeof increment === "function" ? increment(AD_REWARD) : AD_REWARD
           });
           if (typeof refreshUI === "function") {
             await refreshUI();
           }
-        
+        }
 
-      alert(`পুরো অ্যাড দেখার জন্য +${AD_REWARD.toFixed(2)} টাকা যোগ হয়েছে (${count}/${DAILY_AD_LIMIT})।`);
+        alert("পুরো অ্যাড দেখা শেষ! +" + AD_REWARD.toFixed(2) + " টাকা যোগ হয়েছে (" + count + "/" + DAILY_AD_LIMIT + ")");
       } else {
-        alert("পুরো অ্যাড না দেখলে রিওয়ার্ড যোগ হবে না!");
+        alert("পুরো অ্যাড না দেখলে রিওয়ার্ড যোগ হয় না!");
       }
     })
     .catch((err) => {
       console.error("Ad error:", err);
-      alert("অ্যাড সম্পন্ন হয়নি বা লোড হচ্ছে না, তাই রিওয়ার্ড যোগ হয়নি।");
+      alert("অ্যাড লোড হয়নি বা শেষ হয়নি, তাই রিওয়ার্ড যোগ হয়নি।");
     })
     .finally(() => {
       adBusy = false;
     });
-}
    </script>
   <div id="miniTaskModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; padding:16px;">
   <div style="background:#161b22; color:#fff; width:100%; max-width:380px; border-radius:12px; padding:18px; border:1px solid #30363d;">
