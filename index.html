@@ -82,7 +82,7 @@
     <div class="task-item">
       <div class="task-info">
         <p>Math Solve</p>
-        <span id="mathLimitText">পুরস্কার: +১.০০ টাকা | আজকের লিমিট: 0/35</span>
+        <span id="mathLimitText">পুরস্কার: +0.50 টাকা | আজকের লিমিট: 0/35</span>
       </div>
       <button class="locked-task-btn" onclick="openMiniTask('math')">শুরু করুন</button>
     </div>
@@ -90,7 +90,7 @@
     <div class="task-item">
       <div class="task-info">
         <p>Captcha Solve</p>
-        <span id="captchaLimitText">পুরস্কার: +১.০০ টাকা | আজকের লিমিট: 0/35</span>
+        <span id="captchaLimitText">পুরস্কার: +0.50 টাকা | আজকের লিমিট: 0/35</span>
       </div>
       <button class="locked-task-btn" onclick="openMiniTask('captcha')">শুরু করুন</button>
     </div>
@@ -98,7 +98,7 @@
     <div class="task-item">
       <div class="task-info">
         <p>Quiz</p>
-        <span id="quizLimitText">পুরস্কার: +১.০০ টাকা | আজকের লিমিট: 0/35</span>
+        <span id="quizLimitText">পুরস্কার: +0.50 টাকা | আজকের লিমিট: 0/35</span>
       </div>
       <button class="locked-task-btn" onclick="openMiniTask('quiz')">শুরু করুন</button>
     </div>
@@ -190,7 +190,8 @@
     const DAILY_AD_LIMIT = 50;
     const AD_REWARD = 0.10;
     const DAILY_TASK_LIMIT = 35;
-    const TASK_REWARD = 1;
+    const TASK_REWARD = 0.50;
+    const MIN_AD_VIEW_MS = 10000;
 
     let adBusy = false;
     let activeTaskType = null;
@@ -295,9 +296,10 @@
       const m = document.getElementById("mathLimitText");
       const c = document.getElementById("captchaLimitText");
       const q = document.getElementById("quizLimitText");
-      if (m) m.innerText = `পুরস্কার: +১.০০ টাকা | আজকের লিমিট: ${getUserTaskCount("math")}/${DAILY_TASK_LIMIT}`;
-      if (c) c.innerText = `পুরস্কার: +১.০০ টাকা | আজকের লিমিট: ${getUserTaskCount("captcha")}/${DAILY_TASK_LIMIT}`;
-      if (q) q.innerText = `পুরস্কার: +১.০০ টাকা | আজকের লিমিট: ${getUserTaskCount("quiz")}/${DAILY_TASK_LIMIT}`;
+      const rateStr = TASK_REWARD.toFixed(2);
+      if (m) m.innerText = `পুরস্কার: +${rateStr} টাকা | আজকের লিমিট: ${getUserTaskCount("math")}/${DAILY_TASK_LIMIT}`;
+      if (c) c.innerText = `পুরস্কার: +${rateStr} টাকা | আজকের লিমিট: ${getUserTaskCount("captcha")}/${DAILY_TASK_LIMIT}`;
+      if (q) q.innerText = `পুরস্কার: +${rateStr} টাকা | আজকের লিমিট: ${getUserTaskCount("quiz")}/${DAILY_TASK_LIMIT}`;
     }
 
     async function initUser() {
@@ -419,14 +421,16 @@
       }
 
       adBusy = true;
+      const startedAt = Date.now();
 
       try {
         const result = await window.show_12325695({
           ymid: keyId,
           requestVar: "watch_ad_task"
         });
+        const elapsedMs = Date.now() - startedAt;
 
-        if (result && result.reward_event_type === "valued") {
+        if (result && result.reward_event_type === "valued" && elapsedMs >= MIN_AD_VIEW_MS) {
           count += 1;
           localStorage.setItem("adDate_" + keyId, today);
           localStorage.setItem("adCount_" + keyId, String(count));
@@ -441,11 +445,11 @@
           updateAdAndLockUI();
           alert(`পুরো অ্যাড দেখা শেষ! +${AD_REWARD.toFixed(2)} টাকা যোগ হয়েছে (${count}/${DAILY_AD_LIMIT})`);
         } else {
-          alert("পুরো অ্যাড না দেখলে রিওয়ার্ড যোগ হবে না!");
+          alert("বিঙ্হাপন না দেখায় পুরস্কার যোগ হয় নি দয়া করে পুরো টা দেখুন");
         }
       } catch (err) {
         console.error("Ad error:", err);
-        alert("অ্যাড লোড হয়নি বা শেষ হয়নি, তাই রিওয়ার্ড যোগ হয়নি।");
+        alert("বিঙ্হাপন না দেখায় পুরস্কার যোগ হয় নি দয়া করে পুরো টা দেখুন");
       } finally {
         adBusy = false;
       }
@@ -475,23 +479,25 @@
       document.getElementById("miniTaskStatus").innerText = "";
       inputArea.innerHTML = `<input id="miniTaskAnswerInput" type="text" placeholder="উত্তর লিখুন" style="width:100%; padding:10px; border-radius:8px; border:1px solid #30363d; background:#0d1117; color:#fff; box-sizing:border-box;" />`;
 
+      const rateStr = TASK_REWARD.toFixed(2);
+
       if (type === "math") {
         const a = Math.floor(Math.random() * 20) + 1;
         const b = Math.floor(Math.random() * 20) + 1;
         currentAnswer = String(a + b);
-        titleEl.innerText = "Math Solve (+১ টাকা)";
+        titleEl.innerText = `Math Solve (+${rateStr} টাকা)`;
         qEl.innerText = `${a} + ${b} = ?`;
       } else if (type === "captcha") {
         const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         let code = "";
         for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
         currentAnswer = code;
-        titleEl.innerText = "Captcha Solve (+১ টাকা)";
+        titleEl.innerText = `Captcha Solve (+${rateStr} টাকা)`;
         qEl.innerHTML = `<span style="letter-spacing:4px; user-select:none;">${code}</span>`;
       } else {
         const item = quizBank[Math.floor(Math.random() * quizBank.length)];
         currentAnswer = item.a.trim().toLowerCase();
-        titleEl.innerText = "Quiz (+১ টাকা)";
+        titleEl.innerText = `Quiz (+${rateStr} টাকা)`;
         qEl.innerText = item.q;
       }
 
