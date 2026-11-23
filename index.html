@@ -6,7 +6,8 @@
   <title>টাকার খেলা - Earning Mini App</title>
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src='//libtl.com/sdk.js' data-zone='12325695' data-sdk='show_12325695'></script>
+  <!-- Ad SDK -->
+  <script src="//libtl.com/sdk.js" data-zone="12325695" data-sdk="show_12325695"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: #0f172a; color: #f8fafc; padding: 16px; padding-bottom: 40px; }
@@ -21,13 +22,14 @@
     .task-item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px; border-radius: 10px; margin-bottom: 8px; }
     .task-info p { font-size: 14px; font-weight: 600; }
     .task-info span { font-size: 12px; color: #4ade80; }
-    button { background: #22c55e; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
-    button:disabled { background: #475569; cursor: not-allowed; }
+    button { background: #22c55e; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; transition: opacity 0.2s ease; }
+    button:disabled, .locked-task { background: #475569 !important; cursor: not-allowed !important; opacity: 0.55; }
     .btn-blue { background: #3b82f6; width: 100%; padding: 11px; margin-top: 8px; font-size: 14px; }
     input, select { width: 100%; padding: 10px; margin-top: 8px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 14px; }
     .ref-box { display: flex; gap: 6px; margin-top: 8px; }
     .ref-box input { margin-top: 0; font-size: 12px; }
     .status-msg { font-size: 12px; color: #fbbf24; margin-top: 8px; text-align: center; }
+    .lock-banner { font-size: 12px; margin-bottom: 10px; padding: 8px 10px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; }
   </style>
 </head>
 <body>
@@ -51,6 +53,7 @@
   <!-- Tasks -->
   <div class="card">
     <h3>কাজ করে আয় করুন (Tasks)</h3>
+    <div id="taskLockStatus" class="lock-banner"></div>
 
     <div class="task-item">
       <div class="task-info">
@@ -63,9 +66,9 @@
     <div class="task-item">
       <div class="task-info">
         <p>বিজ্ঞাপন দেখুন (Watch Ad)</p>
-        <span>পুরস্কার: +০.১০. টাকা</span>
+        <span id="adLimitText">পুরস্কার: +০.১০ টাকা | আজকের লিমিট: 0/50</span>
       </div>
-      <button onclick="watchAd()">দেখুন</button>
+      <button id="watchAdBtn" onclick="watchAd()">দেখুন</button>
     </div>
 
     <div class="task-item">
@@ -75,28 +78,32 @@
       </div>
       <button id="task2Btn" onclick="completeTask('task2', 5, 'https://youtube.com')">ভিজিট</button>
     </div>
+
+    <div class="task-item">
+      <div class="task-info">
+        <p>Math Solve</p>
+        <span id="mathLimitText">পুরস্কার: +১.০০ টাকা | আজকের লিমিট: 0/35</span>
+      </div>
+      <button class="locked-task-btn" onclick="openMiniTask('math')">শুরু করুন</button>
+    </div>
+
+    <div class="task-item">
+      <div class="task-info">
+        <p>Captcha Solve</p>
+        <span id="captchaLimitText">পুরস্কার: +১.০০ টাকা | আজকের লিমিট: 0/35</span>
+      </div>
+      <button class="locked-task-btn" onclick="openMiniTask('captcha')">শুরু করুন</button>
+    </div>
+
+    <div class="task-item">
+      <div class="task-info">
+        <p>Quiz</p>
+        <span id="quizLimitText">পুরস্কার: +১.০০ টাকা | আজকের লিমিট: 0/35</span>
+      </div>
+      <button class="locked-task-btn" onclick="openMiniTask('quiz')">শুরু করুন</button>
+    </div>
   </div>
-<div class="task-item">
-  <div class="task-info">
-    <p>Math Solve</p>
-    <span id="mathLimitText">পুরস্কার: +১.০০ টাকা | আজকের লিমিট: 0/35</span>
-  </div>
-  <button onclick="openMiniTask('math')">শুরু করুন</button>
-</div>
-<div class="task-item">
-  <div class="task-info">
-    <p>Captcha Solve</p>
-    <span id="captchaLimitText">পুরস্কার: +১.০০ টাকা | আজকের লিমিট: 0/35</span>
-  </div>
-  <button onclick="openMiniTask('captcha')">শুরু করুন</button>
-</div>
-<div class="task-item">
-  <div class="task-info">
-    <p>Quiz</p>
-    <span id="quizLimitText">পুরস্কার: +১.০০ টাকা | আজকের লিমিট: 0/35</span>
-  </div>
-  <button onclick="openMiniTask('quiz')">শুরু করুন</button>
-</div>
+
   <!-- Referral -->
   <div class="card">
     <h3>রেফার করে আয় (প্রতি রেফারে 15৳)</h3>
@@ -115,11 +122,12 @@
       <option value="Nagad">নগদ (Nagad)</option>
     </select>
     <input type="number" id="accountNum" placeholder="আপনার বিকাশ/নগদ নম্বর দিন" />
-    <input type="number" id="withdrawAmount" placeholder="টাকার পরিমাণ (সর্বনিম্ন ০০)" />
+    <input type="number" id="withdrawAmount" placeholder="টাকার পরিমাণ (সর্বনিম্ন ২০০)" />
     <button class="btn-blue" onclick="submitWithdraw()">উইথড্র রিকোয়েস্ট পাঠান</button>
     <div class="status-msg" id="msg"></div>
   </div>
-<!-- Support -->
+
+  <!-- Support -->
   <div class="card">
     <h3>সাপোর্ট (Support)</h3>
     <p style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">
@@ -129,491 +137,527 @@
       সাপোর্টে মেসেজ দিন
     </a>
   </div>
-  <!-- Firebase SDK -->
+
+  <!-- Mini Task Modal -->
+  <div id="miniTaskModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+    <div style="background:#161b22; color:#fff; width:100%; max-width:380px; border-radius:12px; padding:18px; border:1px solid #30363d;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h4 id="miniTaskTitle" style="margin:0;">টাস্ক</h4>
+        <button onclick="closeMiniTask()" style="background:#30363d; color:#fff; border:none; border-radius:6px; padding:4px 10px;">✕</button>
+      </div>
+      <div id="miniTaskQuestion" style="font-size:18px; font-weight:bold; margin-bottom:12px; text-align:center; padding:12px; background:#0d1117; border-radius:8px;"></div>
+      <div id="miniTaskInputArea" style="margin-bottom:12px;"></div>
+      <button id="miniTaskSubmitBtn" onclick="submitMiniTask()" style="width:100%; padding:10px; background:#238636; color:#fff; border:none; border-radius:8px; font-weight:bold;">উত্তর জমা দিন</button>
+      <p id="miniTaskStatus" style="margin-top:10px; font-size:13px; text-align:center; min-height:20px;"></p>
+    </div>
+  </div>
+
+  <!-- Firebase SDK & App Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import {
-    getFirestore,
-    doc,
-    getDoc,
-    setDoc,
-    updateDoc,
-    addDoc,
-    collection,
-    increment
-  } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      updateDoc,
+      addDoc,
+      collection,
+      increment
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBbB9y_3g4Zmx-YGweWl-GZsbs0at7opA",
-    authDomain: "fire-earn-app.firebaseapp.com",
-    projectId: "fire-earn-app",
-    storageBucket: "fire-earn-app.firebasestorage.app",
-    messagingSenderId: "518377603038",
-    appId: "1:518377603038:web:b7798e524bdd035a94a74f"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbB9y_3g4Zmx-YGweWl-GZsbs0at7opA",
+      authDomain: "fire-earn-app.firebaseapp.com",
+      projectId: "fire-earn-app",
+      storageBucket: "fire-earn-app.firebasestorage.app",
+      messagingSenderId: "518377603038",
+      appId: "1:518377603038:web:b7798e524bdd035a94a74f"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  const tg = window.Telegram?.WebApp;
-  if (tg) {
-    tg.expand();
-  }
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.expand();
+    }
 
-  const user = tg?.initDataUnsafe?.user || { id: "12345678", first_name: "Test User" };
-  const userId = String(user.id);
-  const BOT_USERNAME = "Fireearnbdbot";
+    const user = tg?.initDataUnsafe?.user || { id: "12345678", first_name: "Test User" };
+    const userId = String(user.id);
+    const BOT_USERNAME = "Fireearnbdbot";
 
-  const uNameEl = document.getElementById("uName");
-  const uIdEl = document.getElementById("uId");
-  const refLinkEl = document.getElementById("refLink");
-  const balanceEl = document.getElementById("balance");
-  const msgEl = document.getElementById("msg");
+    const DAILY_AD_LIMIT = 50;
+    const AD_REWARD = 0.10;
+    const DAILY_TASK_LIMIT = 35;
+    const TASK_REWARD = 1;
 
-  if (uNameEl) uNameEl.innerText = user.first_name || "User";
-  if (uIdEl) uIdEl.innerText = "ID: " + userId;
-  if (refLinkEl) {
-    refLinkEl.value = `https://t.me/${BOT_USERNAME}?startapp=${userId}`;
-  }
+    let adBusy = false;
+    let activeTaskType = null;
+    let currentAnswer = "";
+    let isTaskBusy = false;
 
-  const userRef = doc(db, "users", userId);
-  let adBusy = false;
+    const uNameEl = document.getElementById("uName");
+    const uIdEl = document.getElementById("uId");
+    const refLinkEl = document.getElementById("refLink");
+    const balanceEl = document.getElementById("balance");
+    const msgEl = document.getElementById("msg");
 
-  async function initUser() {
-    try {
-      const snap = await getDoc(userRef);
-      if (!snap.exists()) {
-        const rawStart = tg?.initDataUnsafe?.start_param || "";
-        const refId = String(rawStart).replace(/^ref_/, "").trim();
+    if (uNameEl) uNameEl.innerText = user.first_name || "User";
+    if (uIdEl) uIdEl.innerText = "ID: " + userId;
+    if (refLinkEl) {
+      refLinkEl.value = `https://t.me/${BOT_USERNAME}?startapp=${userId}`;
+    }
 
-        await setDoc(userRef, {
-          name: user.first_name || "User",
-          balance: 0,
-          completedTasks: [],
-          lastDaily: "",
-          referredBy: refId && refId !== userId ? refId : "",
-          createdAt: new Date().toISOString()
-        });
+    const userRef = doc(db, "users", userId);
 
-        if (refId && refId !== userId) {
-          const referrerRef = doc(db, "users", refId);
-          const refSnap = await getDoc(referrerRef);
-          if (refSnap.exists()) {
-            await updateDoc(referrerRef, {
-              balance: increment(50),
-              referralCount: increment(1)
-            });
+    const quizBank = [
+      { q: "বাংলাদেশের রাজধানী কোথায়?", a: "ঢাকা" },
+      { q: "৭ + ৮ কত হয়?", a: "15" },
+      { q: "সূর্য কোন দিকে ওঠে?", a: "পূর্ব" },
+      { q: "এক বছরে কত মাস?", a: "12" },
+      { q: "পৃথিবীর সবচেয়ে বড় মহাসাগর কোনটি?", a: "প্রশান্ত" }
+    ];
+
+    function getTodayStr() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function getAdKeyId() {
+      const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+      return tgUser?.id ? String(tgUser.id) : "guest";
+    }
+
+    function getTodayAdCount() {
+      const keyId = getAdKeyId();
+      const today = getTodayStr();
+      const savedDate = localStorage.getItem("adDate_" + keyId);
+      let count = Number(localStorage.getItem("adCount_" + keyId) || 0);
+
+      if (savedDate !== today) {
+        count = 0;
+        localStorage.setItem("adDate_" + keyId, today);
+        localStorage.setItem("adCount_" + keyId, "0");
+      }
+      return count;
+    }
+
+    function isTasksUnlocked() {
+      return getTodayAdCount() >= DAILY_AD_LIMIT;
+    }
+
+    function updateAdAndLockUI() {
+      const count = getTodayAdCount();
+      const unlocked = count >= DAILY_AD_LIMIT;
+      const remaining = Math.max(0, DAILY_AD_LIMIT - count);
+
+      const adLimitText = document.getElementById("adLimitText");
+      if (adLimitText) {
+        adLimitText.innerText = `পুরস্কার: +০.১০ টাকা | আজকের লিমিট: ${count}/${DAILY_AD_LIMIT}`;
+      }
+
+      const lockNote = document.getElementById("taskLockStatus");
+      if (lockNote) {
+        lockNote.style.color = unlocked ? "#4ade80" : "#fbbf24";
+        lockNote.innerText = unlocked
+          ? `আজকের ${DAILY_AD_LIMIT}টি বিজ্ঞাপন সম্পন্ন! সব টাস্ক আনলক হয়েছে।`
+          : `টাস্ক আনলক করতে আগে আজকের ${DAILY_AD_LIMIT}টি বিজ্ঞাপন শেষ করতে হবে (বাকি আছে ${remaining}টি — ${count}/${DAILY_AD_LIMIT})।`;
+      }
+
+      document.querySelectorAll(".locked-task-btn").forEach((btn) => {
+        if (unlocked) {
+          btn.classList.remove("locked-task");
+        } else {
+          btn.classList.add("locked-task");
+        }
+      });
+    }
+
+    function getUserTaskCount(type) {
+      const uid = getAdKeyId();
+      return Number(localStorage.getItem(`fire_earn_${uid}_${type}_${getTodayStr()}`) || "0");
+    }
+
+    function incrementUserTaskCount(type) {
+      const uid = getAdKeyId();
+      const key = `fire_earn_${uid}_${type}_${getTodayStr()}`;
+      const next = getUserTaskCount(type) + 1;
+      localStorage.setItem(key, String(next));
+      updateTaskLimitLabels();
+      return next;
+    }
+
+    function updateTaskLimitLabels() {
+      const m = document.getElementById("mathLimitText");
+      const c = document.getElementById("captchaLimitText");
+      const q = document.getElementById("quizLimitText");
+      if (m) m.innerText = `পুরস্কার: +১.০০ টাকা | আজকের লিমিট: ${getUserTaskCount("math")}/${DAILY_TASK_LIMIT}`;
+      if (c) c.innerText = `পুরস্কার: +১.০০ টাকা | আজকের লিমিট: ${getUserTaskCount("captcha")}/${DAILY_TASK_LIMIT}`;
+      if (q) q.innerText = `পুরস্কার: +১.০০ টাকা | আজকের লিমিট: ${getUserTaskCount("quiz")}/${DAILY_TASK_LIMIT}`;
+    }
+
+    async function initUser() {
+      try {
+        const snap = await getDoc(userRef);
+        if (!snap.exists()) {
+          const rawStart = tg?.initDataUnsafe?.start_param || "";
+          const refId = String(rawStart).replace(/^ref_/, "").trim();
+
+          await setDoc(userRef, {
+            name: user.first_name || "User",
+            balance: 0,
+            completedTasks: [],
+            lastDaily: "",
+            referredBy: refId && refId !== userId ? refId : "",
+            createdAt: new Date().toISOString()
+          });
+
+          if (refId && refId !== userId) {
+            const referrerRef = doc(db, "users", refId);
+            const refSnap = await getDoc(referrerRef);
+            if (refSnap.exists()) {
+              await updateDoc(referrerRef, {
+                balance: increment(50),
+                referralCount: increment(1)
+              });
+            }
           }
         }
-      }
-      await refreshUI();
-    } catch (err) {
-      console.error("initUser error:", err);
-      if (msgEl) msgEl.innerText = "ডাটাবেজ সংযোগে সমস্যা হচ্ছে।";
-    }
-  }
-
-  async function refreshUI() {
-    try {
-      const snap = await getDoc(userRef);
-      if (snap.exists()) {
-        const data = snap.data();
-        const bal = Number(data.balance || 0);
-        if (balanceEl) {
-          balanceEl.innerText = ` ${bal.toFixed(2)}`;
-        }
-      }
-    } catch (err) {
-      console.error("refreshUI error:", err);
-    }
-  }
-
-  window.claimDaily = async () => {
-    try {
-      const today = new Date().toDateString();
-      const snap = await getDoc(userRef);
-      if (!snap.exists()) return;
-
-      if (snap.data().lastDaily === today) {
-        alert("আজকের ডেইলি বোনাস ইতিমধ্যে নিয়েছেন!");
-        return;
-      }
-
-      await updateDoc(userRef, {
-        balance: increment(5),
-        lastDaily: today
-      });
-      alert("অভিনন্দন! +৫ টাকা বোনাস যোগ হয়েছে।");
-      await refreshUI();
-    } catch (err) {
-      console.error("claimDaily error:", err);
-      alert("বোনাস যোগ করতে সমস্যা হয়েছে।");
-    }
-  };
-
-  window.completeTask = async (taskId, reward, url) => {
-    try {
-      if (url) window.open(url, "_blank");
-      const snap = await getDoc(userRef);
-      if (!snap.exists()) return;
-
-      const tasks = snap.data().completedTasks || [];
-      if (tasks.includes(taskId)) {
-        alert("এই কাজটি আগেই সম্পন্ন করেছেন!");
-        return;
-      }
-
-      tasks.push(taskId);
-      await updateDoc(userRef, {
-        balance: increment(reward),
-        completedTasks: tasks
-      });
-      alert(`কাজ সম্পন্ন! +${reward} টাকা যোগ হয়েছে।`);
-      await refreshUI();
-    } catch (err) {
-      console.error("completeTask error:", err);
-      alert("টাস্ক আপডেট করতে সমস্যা হয়েছে।");
-    }
-  };
-
-  window.watchAd = async () => {
-    if (adBusy) {
-      alert("আগে একটি বিজ্ঞাপন চলছে, অনুগ্রহ করে অপেক্ষা করুন।");
-      return;
-    }
-    adBusy = true;
-    alert("বিজ্ঞাপন লোড হচ্ছে... ৫ সেকেন্ড অপেক্ষা করুন।");
-
-    setTimeout(async () => {
-      try {
-        await updateDoc(userRef, {
-          balance: increment(2)
-        });
-        alert("বিজ্ঞাপন দেখার জন্য +২ টাকা যোগ হয়েছে!");
         await refreshUI();
       } catch (err) {
-        console.error("watchAd error:", err);
-        alert("অ্যাড রিওয়ার্ড যোগ করতে সমস্যা হয়েছে।");
+        console.error("initUser error:", err);
+        if (msgEl) msgEl.innerText = "ডাটাবেজ সংযোগে সমস্যা হচ্ছে।";
+      }
+    }
+
+    async function refreshUI() {
+      try {
+        const snap = await getDoc(userRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          const bal = Number(data.balance || 0);
+          if (balanceEl) {
+            balanceEl.innerText = bal.toFixed(2);
+          }
+        }
+      } catch (err) {
+        console.error("refreshUI error:", err);
+      }
+    }
+
+    window.claimDaily = async () => {
+      try {
+        const today = new Date().toDateString();
+        const snap = await getDoc(userRef);
+        if (!snap.exists()) return;
+
+        if (snap.data().lastDaily === today) {
+          alert("আজকের ডেইলি বোনাস ইতিমধ্যে নিয়েছেন!");
+          return;
+        }
+
+        await updateDoc(userRef, {
+          balance: increment(5),
+          lastDaily: today
+        });
+        alert("অভিনন্দন! +৫ টাকা বোনাস যোগ হয়েছে।");
+        await refreshUI();
+      } catch (err) {
+        console.error("claimDaily error:", err);
+        alert("বোনাস যোগ করতে সমস্যা হয়েছে।");
+      }
+    };
+
+    window.completeTask = async (taskId, reward, url) => {
+      try {
+        if (url) window.open(url, "_blank");
+        const snap = await getDoc(userRef);
+        if (!snap.exists()) return;
+
+        const tasks = snap.data().completedTasks || [];
+        if (tasks.includes(taskId)) {
+          alert("এই কাজটি আগেই সম্পন্ন করেছেন!");
+          return;
+        }
+
+        tasks.push(taskId);
+        await updateDoc(userRef, {
+          balance: increment(reward),
+          completedTasks: tasks
+        });
+        alert(`কাজ সম্পন্ন! +${reward} টাকা যোগ হয়েছে।`);
+        await refreshUI();
+      } catch (err) {
+        console.error("completeTask error:", err);
+        alert("টাস্ক আপডেট করতে সমস্যা হয়েছে।");
+      }
+    };
+
+    window.watchAd = async () => {
+      if (adBusy) {
+        alert("আগে একটি বিজ্ঞাপন চলছে, অনুগ্রহ করে অপেক্ষা করুন।");
+        return;
+      }
+
+      const keyId = getAdKeyId();
+      const today = getTodayStr();
+      let count = getTodayAdCount();
+
+      if (count >= DAILY_AD_LIMIT) {
+        alert(`আজকের ${DAILY_AD_LIMIT}টি অ্যাড দেখার লিমিট শেষ! বাকি টাস্কগুলো আনলক আছে।`);
+        updateAdAndLockUI();
+        return;
+      }
+
+      if (typeof window.show_12325695 !== "function") {
+        alert("বিজ্ঞাপন স্ক্রিপ্ট এখনো লোড হয়নি। নেট বা অ্যাডব্লকার চেক করে একটু পর আবার চেষ্টা করুন।");
+        return;
+      }
+
+      adBusy = true;
+
+      try {
+        const result = await window.show_12325695({
+          ymid: keyId,
+          requestVar: "watch_ad_task"
+        });
+
+        if (result && result.reward_event_type === "valued") {
+          count += 1;
+          localStorage.setItem("adDate_" + keyId, today);
+          localStorage.setItem("adCount_" + keyId, String(count));
+
+          if (keyId !== "guest" && typeof db !== "undefined") {
+            await updateDoc(doc(db, "users", keyId), {
+              balance: increment(AD_REWARD)
+            });
+            await refreshUI();
+          }
+
+          updateAdAndLockUI();
+          alert(`পুরো অ্যাড দেখা শেষ! +${AD_REWARD.toFixed(2)} টাকা যোগ হয়েছে (${count}/${DAILY_AD_LIMIT})`);
+        } else {
+          alert("পুরো অ্যাড না দেখলে রিওয়ার্ড যোগ হবে না!");
+        }
+      } catch (err) {
+        console.error("Ad error:", err);
+        alert("অ্যাড লোড হয়নি বা শেষ হয়নি, তাই রিওয়ার্ড যোগ হয়নি।");
       } finally {
         adBusy = false;
       }
-    }, 5000);
-  };
+    };
 
-  window.copyRef = async () => {
-    try {
-      if (!refLinkEl || !refLinkEl.value) return;
-      refLinkEl.select();
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(refLinkEl.value);
+    window.openMiniTask = function (type) {
+      if (isTaskBusy) return;
+
+      if (!isTasksUnlocked()) {
+        const count = getTodayAdCount();
+        const left = DAILY_AD_LIMIT - count;
+        alert(`আগে আজকের ${DAILY_AD_LIMIT}টি বিজ্ঞাপন শেষ করুন! বাকি টাস্ক খুলতে আরও ${left}টি অ্যাড দেখতে হবে (${count}/${DAILY_AD_LIMIT})।`);
+        updateAdAndLockUI();
+        return;
+      }
+
+      if (getUserTaskCount(type) >= DAILY_TASK_LIMIT) {
+        alert(`আজকের ${DAILY_TASK_LIMIT}টি লিমিট শেষ!`);
+        return;
+      }
+
+      activeTaskType = type;
+      const modal = document.getElementById("miniTaskModal");
+      const titleEl = document.getElementById("miniTaskTitle");
+      const qEl = document.getElementById("miniTaskQuestion");
+      const inputArea = document.getElementById("miniTaskInputArea");
+      document.getElementById("miniTaskStatus").innerText = "";
+      inputArea.innerHTML = `<input id="miniTaskAnswerInput" type="text" placeholder="উত্তর লিখুন" style="width:100%; padding:10px; border-radius:8px; border:1px solid #30363d; background:#0d1117; color:#fff; box-sizing:border-box;" />`;
+
+      if (type === "math") {
+        const a = Math.floor(Math.random() * 20) + 1;
+        const b = Math.floor(Math.random() * 20) + 1;
+        currentAnswer = String(a + b);
+        titleEl.innerText = "Math Solve (+১ টাকা)";
+        qEl.innerText = `${a} + ${b} = ?`;
+      } else if (type === "captcha") {
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        let code = "";
+        for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
+        currentAnswer = code;
+        titleEl.innerText = "Captcha Solve (+১ টাকা)";
+        qEl.innerHTML = `<span style="letter-spacing:4px; user-select:none;">${code}</span>`;
       } else {
-        document.execCommand("copy");
+        const item = quizBank[Math.floor(Math.random() * quizBank.length)];
+        currentAnswer = item.a.trim().toLowerCase();
+        titleEl.innerText = "Quiz (+১ টাকা)";
+        qEl.innerText = item.q;
       }
-      alert("রেফারেল লিংক কপি হয়েছে!");
-    } catch (err) {
-      alert("লিংক কপি করা যায়নি, ম্যানুয়ালি কপি করুন।");
-    }
-  };
 
-  window.submitWithdraw = async () => {
-    try {
-      const method = document.getElementById("method")?.value || "Bkash";
-      const number = document.getElementById("accountNum")?.value?.trim() || "";
-      const amount = Number(document.getElementById("withdrawAmount")?.value || 0);
+      modal.style.display = "flex";
+    };
 
-      const snap = await getDoc(userRef);
-      if (!snap.exists()) return;
+    window.closeMiniTask = function () {
+      if (isTaskBusy) return;
+      document.getElementById("miniTaskModal").style.display = "none";
+      activeTaskType = null;
+    };
 
-      const currentBal = Number(snap.data().balance || 0);
+    window.submitMiniTask = async function () {
+      if (isTaskBusy || !activeTaskType) return;
 
-      if (!number || number.length < 11 || isNaN(amount) || amount < 200) {
-        alert("সঠিক নম্বর (অন্তত ১১ ডিজিট) দিন এবং কমপক্ষে ২০০ টাকা লিখুন।");
+      if (!isTasksUnlocked()) {
+        alert(`আগে আজকের ${DAILY_AD_LIMIT}টি বিজ্ঞাপন শেষ করুন!`);
+        closeMiniTask();
         return;
       }
 
-      if (amount > currentBal) {
-        alert("আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই!");
+      const type = activeTaskType;
+      if (getUserTaskCount(type) >= DAILY_TASK_LIMIT) {
+        alert(`আজকের ${DAILY_TASK_LIMIT}টি লিমিট শেষ!`);
+        closeMiniTask();
         return;
       }
 
-      await updateDoc(userRef, {
-        balance: increment(-amount)
-      });
+      const ans = (document.getElementById("miniTaskAnswerInput")?.value || "").trim();
+      const statusEl = document.getElementById("miniTaskStatus");
+      const btn = document.getElementById("miniTaskSubmitBtn");
 
-      await addDoc(collection(db, "withdrawals"), {
-        userId: userId,
-        name: user.first_name || "User",
-        method: method,
-        number: number,
-        amount: amount,
-        status: "Pending",
-        date: new Date().toISOString()
-      });
-const BOT_TOKEN = "9033467245:AAGJTmt1Fvl4aCGkV_eiWqX7wvj3j5BSR4s";
-      const ADMIN_CHAT_ID = "8592698219";
+      if (!ans) {
+        statusEl.style.color = "#f85149";
+        statusEl.innerText = "আগে উত্তর লিখুন!";
+        return;
+      }
 
-      const notifyText =
-        `🔔 নতুন উইথড্র রিকোয়েস্ট!\n` +
-        `নাম: ${user.first_name || "User"}\n` +
-        `ID: ${userId}\n` +
-        `মেথড: ${method}\n` +
-        `নম্বর: ${number}\n` +
-        `পরিমাণ: ${amount} টাকা\n` +
-        `স্ট্যাটাস: Pending`;
+      isTaskBusy = true;
+      btn.disabled = true;
+      statusEl.style.color = "#58a6ff";
+      statusEl.innerText = "লোডিং হচ্ছে...";
+      await new Promise((r) => setTimeout(r, 2000));
+
+      const ok = type === "captcha"
+        ? ans.toUpperCase() === currentAnswer.toUpperCase()
+        : ans.toLowerCase() === currentAnswer.toLowerCase();
+
+      if (!ok) {
+        isTaskBusy = false;
+        btn.disabled = false;
+        statusEl.style.color = "#f85149";
+        statusEl.innerText = "উত্তর ভুল হয়েছে!";
+        return;
+      }
 
       try {
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            chat_id: ADMIN_CHAT_ID,
-            text: notifyText
-          })
+        const uid = getAdKeyId();
+        if (uid !== "guest" && typeof db !== "undefined") {
+          await updateDoc(doc(db, "users", uid), { balance: increment(TASK_REWARD) });
+          await refreshUI();
+        }
+        incrementUserTaskCount(type);
+        statusEl.style.color = "#3fb950";
+        statusEl.innerText = "সঠিক উত্তর! রিওয়ার্ড যোগ হয়েছে।";
+        isTaskBusy = false;
+        btn.disabled = false;
+        closeMiniTask();
+      } catch (e) {
+        console.error(e);
+        isTaskBusy = false;
+        btn.disabled = false;
+        statusEl.style.color = "#f85149";
+        statusEl.innerText = "সমস্যা হয়েছে, আবার চেষ্টা করুন।";
+      }
+    };
+
+    window.copyRef = async () => {
+      try {
+        if (!refLinkEl || !refLinkEl.value) return;
+        refLinkEl.select();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(refLinkEl.value);
+        } else {
+          document.execCommand("copy");
+        }
+        alert("রেফারেল লিংক কপি হয়েছে!");
+      } catch (err) {
+        alert("লিংক কপি করা যায়নি, ম্যানুয়ালি কপি করুন।");
+      }
+    };
+
+    window.submitWithdraw = async () => {
+      try {
+        const method = document.getElementById("method")?.value || "Bkash";
+        const number = document.getElementById("accountNum")?.value?.trim() || "";
+        const amount = Number(document.getElementById("withdrawAmount")?.value || 0);
+
+        const snap = await getDoc(userRef);
+        if (!snap.exists()) return;
+
+        const currentBal = Number(snap.data().balance || 0);
+
+        if (!number || number.length < 11 || isNaN(amount) || amount < 200) {
+          alert("সঠিক নম্বর (অন্তত ১১ ডিজিট) দিন এবং কমপক্ষে ২০০ টাকা লিখুন।");
+          return;
+        }
+
+        if (amount > currentBal) {
+          alert("আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই!");
+          return;
+        }
+
+        await updateDoc(userRef, {
+          balance: increment(-amount)
         });
-      } catch (notifyErr) {
-        console.error("Telegram notify error:", notifyErr);
-        }
-      if (msgEl) {
-        msgEl.innerText = "উইথড্র রিকোয়েস্ট সফলভাবে জমা হয়েছে (Pending)।";
-      }
-      alert("আপনার উইথড্র রিকোয়েস্ট জমা হয়েছে!");
-      await refreshUI();
-    } catch (err) {
-      console.error("submitWithdraw error:", err);
-      alert("উইথড্র জমা দিতে সমস্যা হয়েছে।");
-    }
-  };
 
-  initUser();
-    const DAILY_TASK_LIMIT = 35;
-const TASK_REWARD = 1;
-let activeTaskType = null;
-let currentAnswer = "";
-let isTaskBusy = false;
+        await addDoc(collection(db, "withdrawals"), {
+          userId: userId,
+          name: user.first_name || "User",
+          method: method,
+          number: number,
+          amount: amount,
+          status: "Pending",
+          date: new Date().toISOString()
+        });
 
-const quizBank = [
-  { q: "বাংলাদেশের রাজধানী কোথায়?", a: "ঢাকা" },
-  { q: "৭ + ৮ কত হয়?", a: "15" },
-  { q: "সূর্য কোন দিকে ওঠে?", a: "পূর্ব" },
-  { q: "এক বছরে কত মাস?", a: "12" },
-  { q: "পৃথিবীর সবচেয়ে বড় মহাসাগর কোনটি?", a: "প্রশান্ত" }
-];
+        const BOT_TOKEN = "9033467245:AAGJTmt1Fvl4aCGkV_eiWqX7wvj3j5BSR4s";
+        const ADMIN_CHAT_ID = "8592698219";
 
-function getTodayKey() {
-  return new Date().toISOString().slice(0, 10);
-}
+        const notifyText =
+          `🔔 নতুন উইথড্র রিকোয়েস্ট!\n` +
+          `নাম: ${user.first_name || "User"}\n` +
+          `ID: ${userId}\n` +
+          `মেথড: ${method}\n` +
+          `নম্বর: ${number}\n` +
+          `পরিমাণ: ${amount} টাকা\n` +
+          `স্ট্যাটাস: Pending`;
 
-function getUserTaskCount(type) {
-  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-  const uid = tgUser?.id ? String(tgUser.id) : "guest";
-  return Number(localStorage.getItem(`fire_earn_${uid}_${type}_${getTodayKey()}`) || "0");
-}
-
-function incrementUserTaskCount(type) {
-  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-  const uid = tgUser?.id ? String(tgUser.id) : "guest";
-  const key = `fire_earn_${uid}_${type}_${getTodayKey()}`;
-  const next = getUserTaskCount(type) + 1;
-  localStorage.setItem(key, String(next));
-  updateTaskLimitLabels();
-  return next;
-}
-
-function updateTaskLimitLabels() {
-  const m = document.getElementById("mathLimitText");
-  const c = document.getElementById("captchaLimitText");
-  const q = document.getElementById("quizLimitText");
-  if (m) m.innerText = `পুরস্কার: +১.০০ টাকা | আজকের লিমিট: ${getUserTaskCount("math")}/${DAILY_TASK_LIMIT}`;
-  if (c) c.innerText = `পুরস্কার: +১.০০ টাকা | আজকের লিমিট: ${getUserTaskCount("captcha")}/${DAILY_TASK_LIMIT}`;
-  if (q) q.innerText = `পুরস্কার: +১.০০ টাকা | আজকের লিমিট: ${getUserTaskCount("quiz")}/${DAILY_TASK_LIMIT}`;
-}
-
-window.openMiniTask = function(type) {
-  if (isTaskBusy) return;
-  if (getUserTaskCount(type) >= DAILY_TASK_LIMIT) {
-    alert(`আজকের ${DAILY_TASK_LIMIT}টি লিমিট শেষ!`);
-    return;
-  }
-  activeTaskType = type;
-  const modal = document.getElementById("miniTaskModal");
-  const titleEl = document.getElementById("miniTaskTitle");
-  const qEl = document.getElementById("miniTaskQuestion");
-  const inputArea = document.getElementById("miniTaskInputArea");
-  document.getElementById("miniTaskStatus").innerText = "";
-  inputArea.innerHTML = `<input id="miniTaskAnswerInput" type="text" placeholder="উত্তর লিখুন" style="width:100%; padding:10px; border-radius:8px; border:1px solid #30363d; background:#0d1117; color:#fff; box-sizing:border-box;" />`;
-
-  if (type === "math") {
-    const a = Math.floor(Math.random() * 20) + 1;
-    const b = Math.floor(Math.random() * 20) + 1;
-    currentAnswer = String(a + b);
-    titleEl.innerText = "Math Solve (+১ টাকা)";
-    qEl.innerText = `${a} + ${b} = ?`;
-  } else if (type === "captcha") {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let code = "";
-    for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
-    currentAnswer = code;
-    titleEl.innerText = "Captcha Solve (+১ টাকা)";
-    qEl.innerHTML = `<span style="letter-spacing:4px; user-select:none;">${code}</span>`;
-  } else {
-    const item = quizBank[Math.floor(Math.random() * quizBank.length)];
-    currentAnswer = item.a.trim().toLowerCase();
-    titleEl.innerText = "Quiz (+১ টাকা)";
-    qEl.innerText = item.q;
-  }
-  modal.style.display = "flex";
-};
-
-window.closeMiniTask = function() {
-  if (isTaskBusy) return;
-  document.getElementById("miniTaskModal").style.display = "none";
-  activeTaskType = null;
-};
-
-window.submitMiniTask = async function() {
-  if (isTaskBusy || !activeTaskType) return;
-  const type = activeTaskType;
-  if (getUserTaskCount(type) >= DAILY_TASK_LIMIT) {
-    alert(`আজকের ${DAILY_TASK_LIMIT}টি লিমিট শেষ!`);
-    closeMiniTask();
-    return;
-  }
-  const ans = (document.getElementById("miniTaskAnswerInput")?.value || "").trim();
-  const statusEl = document.getElementById("miniTaskStatus");
-  const btn = document.getElementById("miniTaskSubmitBtn");
-  if (!ans) {
-    statusEl.style.color = "#f85149";
-    statusEl.innerText = "আগে উত্তর লিখুন!";
-    return;
-  }
-  isTaskBusy = true;
-  btn.disabled = true;
-  statusEl.style.color = "#58a6ff";
-  statusEl.innerText = "লোডিং হচ্ছে...";
-  await new Promise((r) => setTimeout(r, 2000));
-
-const ok = type === "captcha"
-  ? ans.toUpperCase() === currentAnswer.toUpperCase()
-  : ans.toLowerCase() === currentAnswer.toLowerCase();
-
-if (!ok) {
-  isTaskBusy = false;
-  btn.disabled = false;
-  statusEl.style.color = "#f85149";
-  statusEl.innerText = "উত্তর ভুল হয়েছে!";
-  return;
-}
-
-try {
-  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-  const uid = tgUser?.id ? String(tgUser.id) : null;
-  if (uid && typeof db !== "undefined") {
-    await updateDoc(doc(db, "users", uid), { balance: increment(TASK_REWARD) });
-    if (typeof refreshUI === "function") await refreshUI();
-  }
-  incrementUserTaskCount(type);
-  statusEl.style.color = "#3fb950";
-  statusEl.innerText = "সঠিক উত্তর! রিওয়ার্ড যোগ হয়েছে।";
-  isTaskBusy = false;
-  btn.disabled = false;
-  closeMiniTask();
-} catch (e) {
-  console.error(e);
-  isTaskBusy = false;
-  btn.disabled = false;
-  statusEl.style.color = "#f85149";
-  statusEl.innerText = "সমস্যা হয়েছে, আবার চেষ্টা করুন।";
-}
-  
- 
-};
-
-updateTaskLimitLabels();
-const AD_REWARD = 0.10;
-const DAILY_AD_LIMIT = 50;
-
-
-function getTodayAdStr() {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
-function watchAd() {
-  if (adBusy) return;
-
-  if (typeof window.show_12325695 !== "function") {
-    alert("অ্যাড স্ক্রিপ্ট এখনো লোড হয়নি, একটু পর আবার চেষ্টা করুন।");
-    return;
-  }
-
-  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-  const uid = tgUser?.id ? String(tgUser.id) : null;
-  const keyId = uid || "guest";
-
-  const today = getTodayAdStr();
-  const savedDate = localStorage.getItem("adDate_" + keyId);
-  let count = Number(localStorage.getItem("adCount_" + keyId) || 0);
-
-  if (savedDate !== today) {
-    count = 0;
-    localStorage.setItem("adDate_" + keyId, today);
-    localStorage.setItem("adCount_" + keyId, "0");
-  }
-
-  if (count >= DAILY_AD_LIMIT) {
-    alert(`আজকের ${DAILY_AD_LIMIT}টি অ্যাড দেখার লিমিট শেষ! আগামীকাল আবার চেষ্টা করুন।`);
-    return;
-  }
-
-  adBusy = true;
-
-  show_12325695({
-    ymid: keyId,
-    requestVar: "watch_ad_task"
-  })
-    .then(async (result) => {
-      if (result && result.reward_event_type === "valued") {
-        count += 1;
-        localStorage.setItem("adDate_" + keyId, today);
-        localStorage.setItem("adCount_" + keyId, String(count));
-
-        if (uid && typeof db !== "undefined" && typeof updateDoc === "function" && typeof doc === "function") {
-          await updateDoc(doc(db, "users", uid), {
-            balance: typeof increment === "function" ? increment(AD_REWARD) : AD_REWARD
+        try {
+          await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              chat_id: ADMIN_CHAT_ID,
+              text: notifyText
+            })
           });
-          if (typeof refreshUI === "function") {
-            await refreshUI();
-          }
+        } catch (notifyErr) {
+          console.error("Telegram notify error:", notifyErr);
         }
 
-        alert("পুরো অ্যাড দেখা শেষ! +" + AD_REWARD.toFixed(2) + " টাকা যোগ হয়েছে (" + count + "/" + DAILY_AD_LIMIT + ")");
-      } else {
-        alert("পুরো অ্যাড না দেখলে রিওয়ার্ড যোগ হয় না!");
+        if (msgEl) {
+          msgEl.innerText = "উইথড্র রিকোয়েস্ট সফলভাবে জমা হয়েছে (Pending)।";
+        }
+        alert("আপনার উইথড্র রিকোয়েস্ট জমা হয়েছে!");
+        await refreshUI();
+      } catch (err) {
+        console.error("submitWithdraw error:", err);
+        alert("উইথড্র জমা দিতে সমস্যা হয়েছে।");
       }
-    })
-    .catch((err) => {
-      console.error("Ad error:", err);
-      alert("অ্যাড লোড হয়নি বা শেষ হয়নি, তাই রিওয়ার্ড যোগ হয়নি।");
-    })
-    .finally(() => {
-      adBusy = false;
-    });
-}
+    };
+
+    updateTaskLimitLabels();
+    updateAdAndLockUI();
+    initUser();
   </script>
-  <div id="miniTaskModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; padding:16px;">
-  <div style="background:#161b22; color:#fff; width:100%; max-width:380px; border-radius:12px; padding:18px; border:1px solid #30363d;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-      <h4 id="miniTaskTitle" style="margin:0;">টাস্ক</h4>
-      <button onclick="closeMiniTask()" style="background:#30363d; color:#fff; border:none; border-radius:6px; padding:4px 10px;">✕</button>
-    </div>
-    <div id="miniTaskQuestion" style="font-size:18px; font-weight:bold; margin-bottom:12px; text-align:center; padding:12px; background:#0d1117; border-radius:8px;"></div>
-    <div id="miniTaskInputArea" style="margin-bottom:12px;"></div>
-    <button id="miniTaskSubmitBtn" onclick="submitMiniTask()" style="width:100%; padding:10px; background:#238636; color:#fff; border:none; border-radius:8px; font-weight:bold;">উত্তর জমা দিন</button>
-    <p id="miniTaskStatus" style="margin-top:10px; font-size:13px; text-align:center; min-height:20px;"></p>
-  </div>
-        </div>
 </body>
-</html>
+  </html>
