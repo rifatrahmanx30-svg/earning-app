@@ -58,9 +58,9 @@
     <div class="task-item">
       <div class="task-info">
         <p>অফিসিয়াল টেলিগ্রাম চ্যানেলে জয়েন</p>
-        <span>পুরস্কার: +১০.০০ টাকা</span>
+        <span>পুরস্কার: +১০.০০ টাকা (জয়েন বাধ্যতামূলক)</span>
       </div>
-      <button id="task1Btn" onclick="completeTask('task1', 10, 'https://t.me/telegram')">জয়েন করুন</button>
+      <button id="task1Btn" onclick="completeTask('task1', 10, 'https://t.me/FireEarnbd7')">জয়েন করুন</button>
     </div>
 
     <div class="task-item">
@@ -192,6 +192,7 @@
     const DAILY_TASK_LIMIT = 35;
     const TASK_REWARD = 0.50;
     const MIN_AD_VIEW_MS = 10000;
+    const MIN_CHANNEL_STAY_MS = 8000;
 
     let adBusy = false;
     let activeTaskType = null;
@@ -376,7 +377,6 @@
 
     window.completeTask = async (taskId, reward, url) => {
       try {
-        if (url) window.open(url, "_blank");
         const snap = await getDoc(userRef);
         if (!snap.exists()) return;
 
@@ -384,6 +384,45 @@
         if (tasks.includes(taskId)) {
           alert("এই কাজটি আগেই সম্পন্ন করেছেন!");
           return;
+        }
+
+        const isChannelTask = taskId === "task1" || (url && url.includes("t.me/FireEarnbd7"));
+        const openedAt = Date.now();
+
+        if (url) {
+          if (isChannelTask && tg && typeof tg.openTelegramLink === "function") {
+            tg.openTelegramLink(url);
+          } else {
+            window.open(url, "_blank");
+          }
+        }
+
+        if (isChannelTask) {
+          alert("চ্যানেলে জয়েন করে অন্তত ৮ সেকেন্ড অপেক্ষা করুন, তারপর ফিরে এসে জয়েন নিশ্চিত করুন।");
+          await new Promise((resolve) => {
+            const onReturn = () => {
+              if (document.visibilityState === "visible") {
+                document.removeEventListener("visibilitychange", onReturn);
+                resolve();
+              }
+            };
+            document.addEventListener("visibilitychange", onReturn);
+            setTimeout(() => {
+              document.removeEventListener("visibilitychange", onReturn);
+              resolve();
+            }, 12000);
+          });
+
+          if (Date.now() - openedAt < MIN_CHANNEL_STAY_MS) {
+            alert("চ্যানেলে জয়েন না করে বা খুব দ্রুত ফিরে আসায় পুরস্কার যোগ হয়নি। অনুগ্রহ করে চ্যানেলে জয়েন করে আবার চেষ্টা করুন।");
+            return;
+          }
+
+          const confirmedJoin = confirm("আপনি কি https://t.me/FireEarnbd7 চ্যানেলে সত্যিই জয়েন করেছেন?");
+          if (!confirmedJoin) {
+            alert("চ্যানেলে জয়েন না করলে পুরস্কার যোগ হবে না।");
+            return;
+          }
         }
 
         tasks.push(taskId);
@@ -445,11 +484,11 @@
           updateAdAndLockUI();
           alert(`পুরো অ্যাড দেখা শেষ! +${AD_REWARD.toFixed(2)} টাকা যোগ হয়েছে (${count}/${DAILY_AD_LIMIT})`);
         } else {
-          alert("বিজ্ঞাপন না দেখায় পুরস্কার যোগ হয় নি দয়া করে বিজ্ঞাপন পুরো টা দেখুন");
+          alert("বিঙ্হাপন না দেখায় পুরস্কার যোগ হয় নি দয়া করে পুরো টা দেখুন");
         }
       } catch (err) {
         console.error("Ad error:", err);
-        alert("বিজ্ঞাপন না দেখায় পুরস্কার যোগ হয় নি দয়া করে বিজ্ঞাপন পুরো টা দেখুন");
+        alert("বিঙ্হাপন না দেখায় পুরস্কার যোগ হয় নি দয়া করে পুরো টা দেখুন");
       } finally {
         adBusy = false;
       }
