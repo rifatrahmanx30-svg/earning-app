@@ -3,706 +3,845 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>টাকার খেলা - Earning Mini App</title>
-  <!-- Telegram WebApp SDK -->
+  <title>FIRE EARN - Mini App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- Ad SDK -->
-  <script src="//libtl.com/sdk.js" data-zone="12325695" data-sdk="show_12325695"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Firebase SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: #0f172a; color: #f8fafc; padding: 16px; padding-bottom: 40px; }
-    .card { background: #1e293b; border-radius: 14px; padding: 16px; margin-bottom: 14px; border: 1px solid #334155; }
-    .header { display: flex; justify-content: space-between; align-items: center; }
-    .user-name { font-size: 16px; font-weight: 700; color: #38bdf8; }
-    .user-id { font-size: 12px; color: #94a3b8; }
-    .balance-box { text-align: center; background: linear-gradient(135deg, #0284c7, #2563eb); border: none; }
-    .balance-title { font-size: 13px; opacity: 0.9; }
-    .balance-amount { font-size: 32px; font-weight: 800; margin: 6px 0; }
-    h3 { font-size: 15px; margin-bottom: 10px; color: #e2e8f0; border-left: 3px solid #38bdf8; padding-left: 8px; }
-    .task-item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px; border-radius: 10px; margin-bottom: 8px; }
-    .task-info p { font-size: 14px; font-weight: 600; }
-    .task-info span { font-size: 12px; color: #4ade80; }
-    button { background: #22c55e; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; transition: opacity 0.2s ease; }
-    button:disabled, .locked-task { background: #475569 !important; cursor: not-allowed !important; opacity: 0.55; }
-    .btn-blue { background: #3b82f6; width: 100%; padding: 11px; margin-top: 8px; font-size: 14px; }
-    input, select { width: 100%; padding: 10px; margin-top: 8px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 14px; }
-    .ref-box { display: flex; gap: 6px; margin-top: 8px; }
-    .ref-box input { margin-top: 0; font-size: 12px; }
-    .status-msg { font-size: 12px; color: #fbbf24; margin-top: 8px; text-align: center; }
-    .lock-banner { font-size: 12px; margin-bottom: 10px; padding: 8px 10px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; }
+    :root {
+      --bg-app: #f3f5f9;
+      --bg-card: #ffffff;
+      --bg-dark: #0f172a;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --border: #e2e8f0;
+      --shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Hind Siliguri', 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      padding-bottom: 86px;
+      min-height: 100vh;
+    }
+
+    /* Top Header */
+    .top-header {
+      background: var(--bg-dark);
+      color: #fff;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .brand-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ff5f2e, #f59e0b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      color: #fff;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 0.3px;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .header-bonus-btn {
+      background: var(--accent-green);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 7px 13px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+    }
+
+    .header-bonus-btn:active {
+      transform: scale(0.97);
+    }
+
+    .container {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    /* Balance Hero Card */
+    .balance-card {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.25);
+      margin-bottom: 14px;
+    }
+
+    .user-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      opacity: 0.92;
+      margin-bottom: 8px;
+    }
+
+    .balance-label {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .balance-amount {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      margin: 4px 0;
+    }
+
+    .balance-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.14);
+      padding: 8px 12px;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+
+    .mini-withdraw-link {
+      background: #fff;
+      color: var(--primary-dark);
+      border: none;
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* Section Title */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 14px 0 10px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-tag {
+      font-size: 11px;
+      background: #dbeafe;
+      color: var(--primary-dark);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    /* 3-Column Icon Grid */
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .grid-tile {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 8px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 104px;
+    }
+
+    .grid-tile:active {
+      transform: scale(0.96);
+      border-color: var(--primary);
+    }
+
+    .icon-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .c-red { background: #ef4444; }
+    .c-green { background: #10b981; }
+    .c-amber { background: #f59e0b; }
+    .c-blue { background: #3b82f6; }
+    .c-purple { background: #8b5cf6; }
+    .c-pink { background: #ec4899; }
+    .c-teal { background: #0d9488; }
+    .c-orange { background: #f97316; }
+    .c-indigo { background: #4f46e5; }
+
+    .tile-label {
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--text-main);
+    }
+
+    .tile-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* Task Cards List */
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .task-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: var(--shadow);
+    }
+
+    .task-info h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .task-info p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .task-btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 13px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 12px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .task-btn.done {
+      background: #cbd5e1;
+      color: #475569;
+      cursor: default;
+    }
+
+    /* Referral Box */
+    .ref-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-top: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .ref-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .ref-input {
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 11px;
+      font-size: 12px;
+      color: var(--text-main);
+    }
+
+    .copy-btn {
+      background: var(--bg-dark);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0 14px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* Floating Support Button */
+    .fab-support {
+      position: fixed;
+      right: 16px;
+      bottom: 78px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #22c55e;
+      color: #fff;
+      border: none;
+      font-size: 22px;
+      box-shadow: 0 8px 20px rgba(34, 197, 94, 0.35);
+      cursor: pointer;
+      z-index: 35;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg-dark);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 8px 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      z-index: 45;
+    }
+
+    .nav-item {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .nav-item.active {
+      color: #f87171;
+    }
+
+    .nav-icon {
+      font-size: 17px;
+    }
+
+    /* Simple Modal for Withdraw */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      z-index: 60;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #fff;
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 380px;
+      padding: 18px;
+    }
+
+    .modal-box h3 {
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .modal-box input, .modal-box select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: inherit;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
   </style>
 </head>
 <body>
 
-  <!-- User Profile -->
-  <div class="card header">
-    <div>
-      <div class="user-name" id="uName">লোড হচ্ছে...</div>
-      <div class="user-id" id="uId">ID: ---</div>
+  <!-- Top Bar -->
+  <header class="top-header">
+    <div class="brand-box">
+      <div class="brand-logo">🔥</div>
+      <div>
+        <div class="brand-title">FIRE EARN</div>
+        <div class="brand-sub" id="statusText">Firebase যুক্ত হচ্ছে...</div>
+      </div>
     </div>
-    <button onclick="claimDaily()" id="dailyBtn">ডেইলি বোনাস (+৫৳)</button>
+    <button class="header-bonus-btn" onclick="claimDailyBonus()">ডেইলি বোনাস (+৫৳)</button>
+  </header>
+
+  <main class="container">
+    <!-- Balance Card -->
+    <section class="balance-card">
+      <div class="user-strip">
+        <span>👤 <strong id="userName">Arafat</strong></span>
+        <span>ID: <strong id="userId">8592698219</strong></span>
+      </div>
+      <div class="balance-label">আপনার বর্তমান ব্যালেন্স</div>
+      <div class="balance-amount">৳ <span id="balanceVal">0.00</span></div>
+      <div class="balance-meta">
+        <span>মিনিমাম উইথড্র: ৳ ২০০</span>
+        <button class="mini-withdraw-link" onclick="openWithdrawModal()">উইথড্র করুন</button>
+      </div>
+    </section>
+
+    <!-- 3-Column Quick Service & Earning Grid -->
+    <div class="section-header">
+      <div class="section-title">কুইক মেনু ও সার্ভিস</div>
+      <span class="section-tag">গোছানো ড্যাশবোর্ড</span>
+    </div>
+
+    <section class="quick-grid">
+      <div class="grid-tile" onclick="handleAdTask()">
+        <div class="icon-circle c-amber">▶</div>
+        <div class="tile-label">বিজ্ঞাপন দেখুন</div>
+        <div class="tile-sub">+৳0.10 / অ্যাড</div>
+      </div>
+
+      <div class="grid-tile" onclick="startChannelTask()">
+        <div class="icon-circle c-blue">✈</div>
+        <div class="tile-label">চ্যানেল জয়েন</div>
+        <div class="tile-sub">+৳10.00</div>
+      </div>
+
+      <div class="grid-tile" onclick="startQuizTask('math', 'Math Solve')">
+        <div class="icon-circle c-red">🧮</div>
+        <div class="tile-label">অংক করে আয়</div>
+        <div class="tile-sub">+৳0.50</div>
+      </div>
+
+      <div class="grid-tile" onclick="startQuizTask('captcha', 'Captcha Solve')">
+        <div class="icon-circle c-purple">🔐</div>
+        <div class="tile-label">ক্যাপচা সমাধান</div>
+        <div class="tile-sub">+৳0.50</div>
+      </div>
+
+      <div class="grid-tile" onclick="startQuizTask('quiz', 'Quiz')">
+        <div class="icon-circle c-teal">❓</div>
+        <div class="tile-label">কুইজ খেলুন</div>
+        <div class="tile-sub">+৳0.50</div>
+      </div>
+
+      <div class="grid-tile" onclick="startSponsorTask()">
+        <div class="icon-circle c-pink">⭐</div>
+        <div class="tile-label">স্পন্সর টাস্ক</div>
+        <div class="tile-sub">বিশেষ অফার</div>
+      </div>
+
+      <div class="grid-tile" onclick="openWithdrawModal()">
+        <div class="icon-circle c-indigo">💳</div>
+        <div class="tile-label">Withdraw</div>
+        <div class="tile-sub">বিকাশ / নগদ</div>
+      </div>
+
+      <div class="grid-tile" onclick="scrollToRef()">
+        <div class="icon-circle c-green">👥</div>
+        <div class="tile-label">রেফার ইনকাম</div>
+        <div class="tile-sub">প্রতি রেফারে ১৫৳</div>
+      </div>
+
+      <div class="grid-tile" onclick="openSupport()">
+        <div class="icon-circle c-orange">💬</div>
+        <div class="tile-label">সাপোর্ট সেন্টার</div>
+        <div class="tile-sub">হেল্প ও গাইড</div>
+      </div>
+    </section>
+
+    <!-- Active Tasks Section -->
+    <div class="section-header" id="tasksSection">
+      <div class="section-title">কাজ করে আয় করুন (Tasks)</div>
+      <span class="section-tag" id="adCounterTag">অ্যাড: 0/50</span>
+    </div>
+
+    <section class="task-list">
+      <div class="task-card">
+        <div class="task-info">
+          <h4>অফিশিয়াল টেলিগ্রাম চ্যানেলে জয়েন</h4>
+          <p>পুরস্কার: +৳10.00 • অন্তত ৮ সেকেন্ড ভিজিট আবশ্যক</p>
+        </div>
+        <button class="task-btn" id="btn-channel" onclick="startChannelTask()">জয়েন করুন</button>
+      </div>
+
+      <div class="task-card">
+        <div class="task-info">
+          <h4>বিজ্ঞাপন দেখুন (Watch Ad)</h4>
+          <p>পুরস্কার: +৳0.10 • দৈনিক লিমিট ৫০টি</p>
+        </div>
+        <button class="task-btn" onclick="handleAdTask()">দেখুন</button>
+      </div>
+
+      <div class="task-card">
+        <div class="task-info">
+          <h4>স্পন্সরড প্রমোশন টাস্ক</h4>
+          <p>পুরস্কার: +৳2.00 • লিংক ভিজিট করে ক্লেইম করুন</p>
+        </div>
+        <button class="task-btn" id="btn-sponsor1" onclick="startSponsorTask()">শুরু করুন</button>
+      </div>
+    </section>
+
+    <!-- Referral Section -->
+    <section class="ref-card" id="refSection">
+      <h4>রেফার করে আয় করুন (প্রতি রেফারে ১৫৳)</h4>
+      <p style="font-size:12px; color:var(--text-muted); margin-top:3px;">নিচের লিংকটি বন্ধুদের সাথে শেয়ার করুন:</p>
+      <div class="ref-row">
+        <input type="text" class="ref-input" id="refLinkInput" readonly value="https://t.me/Fireearnbdbot?startapp=8592698219" />
+        <button class="copy-btn" onclick="copyRefLink()">কপি</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Floating Support Button -->
+  <button class="fab-support" title="সাপোর্ট" onclick="openSupport()">💬</button>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+      <span class="nav-icon">🏠</span>
+      <span>হোম</span>
+    </button>
+    <button class="nav-item" onclick="document.getElementById('tasksSection').scrollIntoView({behavior:'smooth'})">
+      <span class="nav-icon">📋</span>
+      <span>টাস্ক</span>
+    </button>
+    <button class="nav-item" onclick="scrollToRef()">
+      <span class="nav-icon">🤝</span>
+      <span>রেফার</span>
+    </button>
+    <button class="nav-item" onclick="openWithdrawModal()">
+      <span class="nav-icon">👛</span>
+      <span>উইথড্র</span>
+    </button>
+  </nav>
+
+  <!-- Withdraw Modal -->
+  <div class="modal-backdrop" id="withdrawModal">
+    <div class="modal-box">
+      <h3>উইথড্র রিকোয়েস্ট পাঠান</h3>
+      <select id="withdrawMethod">
+        <option value="bKash">bKash</option>
+        <option value="Nagad">Nagad</option>
+        <option value="Rocket">Rocket</option>
+      </select>
+      <input type="text" id="withdrawNumber" placeholder="অ্যাকাউন্ট নম্বর (যেমন: 017XXXXXXXX)" />
+      <input type="number" id="withdrawAmount" placeholder="টাকার পরিমাণ (মিনিমাম ২০০)" />
+      <div class="modal-actions">
+        <button class="task-btn done" onclick="closeWithdrawModal()">বাতিল</button>
+        <button class="task-btn" onclick="submitWithdraw()">সাবমিট</button>
+      </div>
+    </div>
   </div>
 
-  <!-- Balance -->
-  <div class="card balance-box">
-    <div class="balance-title">আপনার বর্তমান ব্যালেন্স</div>
-    <div class="balance-amount">৳ <span id="balance">0.00</span></div>
-    <div style="font-size: 12px; opacity: 0.85;">মিনিমাম উইথড্র: ৳( ২০০ )</div>
-  </div>
-
-  <!-- Tasks -->
-  <div class="card">
-    <h3>কাজ করে আয় করুন (Tasks)</h3>
-    <div id="taskLockStatus" class="lock-banner"></div>
-
-    <div class="task-item">
-      <div class="task-info">
-        <p>অফিসিয়াল টেলিগ্রাম চ্যানেলে জয়েন</p>
-        <span>পুরস্কার: +১০.০০ টাকা (জয়েন বাধ্যতামূলক)</span>
-      </div>
-      <button id="task1Btn" onclick="completeTask('task1', 10, 'https://t.me/FireEarnbd7')">জয়েন করুন</button>
-    </div>
-
-    <div class="task-item">
-      <div class="task-info">
-        <p>বিজ্ঞাপন দেখুন (Watch Ad)</p>
-        <span id="adLimitText">পুরস্কার: +০.১০ টাকা | আজকের লিমিট: 0/50</span>
-      </div>
-      <button id="watchAdBtn" onclick="watchAd()">দেখুন</button>
-    </div>
-
-    <div class="task-item">
-      <div class="task-info">
-        <p>YouTube ভিডিও ভিজিট</p>
-        <span>পুরস্কার: +৫.০০ টাকা</span>
-      </div>
-      <button id="task2Btn" onclick="completeTask('task2', 5, 'https://youtube.com')">ভিজিট</button>
-    </div>
-
-    <div class="task-item">
-      <div class="task-info">
-        <p>Math Solve</p>
-        <span id="mathLimitText">পুরস্কার: +0.50 টাকা | আজকের লিমিট: 0/35</span>
-      </div>
-      <button class="locked-task-btn" onclick="openMiniTask('math')">শুরু করুন</button>
-    </div>
-
-    <div class="task-item">
-      <div class="task-info">
-        <p>Captcha Solve</p>
-        <span id="captchaLimitText">পুরস্কার: +0.50 টাকা | আজকের লিমিট: 0/35</span>
-      </div>
-      <button class="locked-task-btn" onclick="openMiniTask('captcha')">শুরু করুন</button>
-    </div>
-
-    <div class="task-item">
-      <div class="task-info">
-        <p>Quiz</p>
-        <span id="quizLimitText">পুরস্কার: +0.50 টাকা | আজকের লিমিট: 0/35</span>
-      </div>
-      <button class="locked-task-btn" onclick="openMiniTask('quiz')">শুরু করুন</button>
-    </div>
-  </div>
-
-  <!-- Referral -->
-  <div class="card">
-    <h3>রেফার করে আয় (প্রতি রেফারে 15৳)</h3>
-    <p style="font-size: 12px; color: #94a3b8;">নিচের লিঙ্কটি বন্ধুদের শেয়ার করুন:</p>
-    <div class="ref-box">
-      <input type="text" id="refLink" readonly value="লোড হচ্ছে..." />
-      <button onclick="copyRef()">কপি</button>
-    </div>
-  </div>
-
-  <!-- Withdraw -->
-  <div class="card">
-    <h3>টাকা উত্তোলন (Withdraw)</h3>
-    <select id="method">
-      <option value="Bkash">বিকাশ (Bkash)</option>
-      <option value="Nagad">নগদ (Nagad)</option>
-    </select>
-    <input type="number" id="accountNum" placeholder="আপনার বিকাশ/নগদ নম্বর দিন" />
-    <input type="number" id="withdrawAmount" placeholder="টাকার পরিমাণ (সর্বনিম্ন ২০০)" />
-    <button class="btn-blue" onclick="submitWithdraw()">উইথড্র রিকোয়েস্ট পাঠান</button>
-    <div class="status-msg" id="msg"></div>
-  </div>
-
-  <!-- Support -->
-  <div class="card">
-    <h3>সাপোর্ট (Support)</h3>
-    <p style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">
-      উইথড্র বা যেকোনো সমস্যায় সরাসরি সাপোর্টে যোগাযোগ করুন।
-    </p>
-    <a href="https://t.me/arafat0967" target="_blank" style="display: block; text-align: center; text-decoration: none; background: #22c55e; color: #fff; padding: 10px; border-radius: 8px; font-weight: 600;">
-      সাপোর্টে মেসেজ দিন
-    </a>
-  </div>
-
-  <!-- Mini Task Modal -->
-  <div id="miniTaskModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; padding:16px;">
-    <div style="background:#161b22; color:#fff; width:100%; max-width:380px; border-radius:12px; padding:18px; border:1px solid #30363d;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <h4 id="miniTaskTitle" style="margin:0;">টাস্ক</h4>
-        <button onclick="closeMiniTask()" style="background:#30363d; color:#fff; border:none; border-radius:6px; padding:4px 10px;">✕</button>
-      </div>
-      <div id="miniTaskQuestion" style="font-size:18px; font-weight:bold; margin-bottom:12px; text-align:center; padding:12px; background:#0d1117; border-radius:8px;"></div>
-      <div id="miniTaskInputArea" style="margin-bottom:12px;"></div>
-      <button id="miniTaskSubmitBtn" onclick="submitMiniTask()" style="width:100%; padding:10px; background:#238636; color:#fff; border:none; border-radius:8px; font-weight:bold;">উত্তর জমা দিন</button>
-      <p id="miniTaskStatus" style="margin-top:10px; font-size:13px; text-align:center; min-height:20px;"></p>
-    </div>
-  </div>
-
-  <!-- Firebase SDK & App Logic -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      setDoc,
-      updateDoc,
-      addDoc,
-      collection,
-      increment
-    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
+  <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyBbB9y_3g4Zmx-YGweWl-GZsbs0at7opA",
+      apiKey: "AIzaSyBbB9y_3g4Zmx-YGweWl-GDzsbs0at7opA",
       authDomain: "fire-earn-app.firebaseapp.com",
       projectId: "fire-earn-app",
       storageBucket: "fire-earn-app.firebasestorage.app",
       messagingSenderId: "518377603038",
-      appId: "1:518377603038:web:b7798e524bdd035a94a74f"
+      appId: "1:518377603038:web:d4bbde7efe1c5bd894a74f",
+      measurementId: "G-FTD4K6K2CR"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
 
-    const tg = window.Telegram?.WebApp;
+    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     if (tg) {
+      tg.ready();
       tg.expand();
     }
 
-    const user = tg?.initDataUnsafe?.user || { id: "12345678", first_name: "Test User" };
-    const userId = String(user.id);
-    const BOT_USERNAME = "Fireearnbdbot";
+    const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+    const currentUserId = tgUser && tgUser.id ? String(tgUser.id) : "8592698219";
+    const currentUserName = tgUser && tgUser.first_name ? tgUser.first_name : "Arafat";
 
-    const DAILY_AD_LIMIT = 50;
-    const AD_REWARD = 0.10;
-    const DAILY_TASK_LIMIT = 35;
-    const TASK_REWARD = 0.50;
-    const MIN_AD_VIEW_MS = 10000;
-    const MIN_CHANNEL_STAY_MS = 8000;
-
-    let adBusy = false;
-    let activeTaskType = null;
-    let currentAnswer = "";
-    let isTaskBusy = false;
-
-    const uNameEl = document.getElementById("uName");
-    const uIdEl = document.getElementById("uId");
-    const refLinkEl = document.getElementById("refLink");
-    const balanceEl = document.getElementById("balance");
-    const msgEl = document.getElementById("msg");
-
-    if (uNameEl) uNameEl.innerText = user.first_name || "User";
-    if (uIdEl) uIdEl.innerText = "ID: " + userId;
-    if (refLinkEl) {
-      refLinkEl.value = `https://t.me/${BOT_USERNAME}?startapp=${userId}`;
-    }
-
-    const userRef = doc(db, "users", userId);
-
-    const quizBank = [
-      { q: "বাংলাদেশের রাজধানী কোথায়?", a: "ঢাকা" },
-      { q: "৭ + ৮ কত হয়?", a: "15" },
-      { q: "সূর্য কোন দিকে ওঠে?", a: "পূর্ব" },
-      { q: "এক বছরে কত মাস?", a: "12" },
-      { q: "পৃথিবীর সবচেয়ে বড় মহাসাগর কোনটি?", a: "প্রশান্ত" }
-    ];
-
-    function getTodayStr() {
-      const now = new Date();
-      const y = now.getFullYear();
-      const m = String(now.getMonth() + 1).padStart(2, "0");
-      const d = String(now.getDate()).padStart(2, "0");
-      return `${y}-${m}-${d}`;
-    }
-
-    function getAdKeyId() {
-      const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-      return tgUser?.id ? String(tgUser.id) : "guest";
-    }
-
-    function getTodayAdCount() {
-      const keyId = getAdKeyId();
-      const today = getTodayStr();
-      const savedDate = localStorage.getItem("adDate_" + keyId);
-      let count = Number(localStorage.getItem("adCount_" + keyId) || 0);
-
-      if (savedDate !== today) {
-        count = 0;
-        localStorage.setItem("adDate_" + keyId, today);
-        localStorage.setItem("adCount_" + keyId, "0");
-      }
-      return count;
-    }
-
-    function isTasksUnlocked() {
-      return getTodayAdCount() >= DAILY_AD_LIMIT;
-    }
-
-    function updateAdAndLockUI() {
-      const count = getTodayAdCount();
-      const unlocked = count >= DAILY_AD_LIMIT;
-      const remaining = Math.max(0, DAILY_AD_LIMIT - count);
-
-      const adLimitText = document.getElementById("adLimitText");
-      if (adLimitText) {
-        adLimitText.innerText = `পুরস্কার: +০.১০ টাকা | আজকের লিমিট: ${count}/${DAILY_AD_LIMIT}`;
-      }
-
-      const lockNote = document.getElementById("taskLockStatus");
-      if (lockNote) {
-        lockNote.style.color = unlocked ? "#4ade80" : "#fbbf24";
-        lockNote.innerText = unlocked
-          ? `আজকের ${DAILY_AD_LIMIT}টি বিজ্ঞাপন সম্পন্ন! সব টাস্ক আনলক হয়েছে।`
-          : `টাস্ক আনলক করতে আগে আজকের ${DAILY_AD_LIMIT}টি বিজ্ঞাপন শেষ করতে হবে (বাকি আছে ${remaining}টি — ${count}/${DAILY_AD_LIMIT})।`;
-      }
-
-      document.querySelectorAll(".locked-task-btn").forEach((btn) => {
-        if (unlocked) {
-          btn.classList.remove("locked-task");
-        } else {
-          btn.classList.add("locked-task");
-        }
-      });
-    }
-
-    function getUserTaskCount(type) {
-      const uid = getAdKeyId();
-      return Number(localStorage.getItem(`fire_earn_${uid}_${type}_${getTodayStr()}`) || "0");
-    }
-
-    function incrementUserTaskCount(type) {
-      const uid = getAdKeyId();
-      const key = `fire_earn_${uid}_${type}_${getTodayStr()}`;
-      const next = getUserTaskCount(type) + 1;
-      localStorage.setItem(key, String(next));
-      updateTaskLimitLabels();
-      return next;
-    }
-
-    function updateTaskLimitLabels() {
-      const m = document.getElementById("mathLimitText");
-      const c = document.getElementById("captchaLimitText");
-      const q = document.getElementById("quizLimitText");
-      const rateStr = TASK_REWARD.toFixed(2);
-      if (m) m.innerText = `পুরস্কার: +${rateStr} টাকা | আজকের লিমিট: ${getUserTaskCount("math")}/${DAILY_TASK_LIMIT}`;
-      if (c) c.innerText = `পুরস্কার: +${rateStr} টাকা | আজকের লিমিট: ${getUserTaskCount("captcha")}/${DAILY_TASK_LIMIT}`;
-      if (q) q.innerText = `পুরস্কার: +${rateStr} টাকা | আজকের লিমিট: ${getUserTaskCount("quiz")}/${DAILY_TASK_LIMIT}`;
-    }
-
-    async function initUser() {
-      try {
-        const snap = await getDoc(userRef);
-        if (!snap.exists()) {
-          const rawStart = tg?.initDataUnsafe?.start_param || "";
-          const refId = String(rawStart).replace(/^ref_/, "").trim();
-
-          await setDoc(userRef, {
-            name: user.first_name || "User",
-            balance: 0,
-            completedTasks: [],
-            lastDaily: "",
-            referredBy: refId && refId !== userId ? refId : "",
-            createdAt: new Date().toISOString()
-          });
-
-          if (refId && refId !== userId) {
-            const referrerRef = doc(db, "users", refId);
-            const refSnap = await getDoc(referrerRef);
-            if (refSnap.exists()) {
-              await updateDoc(referrerRef, {
-                balance: increment(50),
-                referralCount: increment(1)
-              });
-            }
-          }
-        }
-        await refreshUI();
-      } catch (err) {
-        console.error("initUser error:", err);
-        if (msgEl) msgEl.innerText = "ডাটাবেজ সংযোগে সমস্যা হচ্ছে।";
-      }
-    }
-
-    async function refreshUI() {
-      try {
-        const snap = await getDoc(userRef);
-        if (snap.exists()) {
-          const data = snap.data();
-          const bal = Number(data.balance || 0);
-          if (balanceEl) {
-            balanceEl.innerText = bal.toFixed(2);
-          }
-        }
-      } catch (err) {
-        console.error("refreshUI error:", err);
-      }
-    }
-
-    window.claimDaily = async () => {
-      try {
-        const today = new Date().toDateString();
-        const snap = await getDoc(userRef);
-        if (!snap.exists()) return;
-
-        if (snap.data().lastDaily === today) {
-          alert("আজকের ডেইলি বোনাস ইতিমধ্যে নিয়েছেন!");
-          return;
-        }
-
-        await updateDoc(userRef, {
-          balance: increment(5),
-          lastDaily: today
-        });
-        alert("অভিনন্দন! +৫ টাকা বোনাস যোগ হয়েছে।");
-        await refreshUI();
-      } catch (err) {
-        console.error("claimDaily error:", err);
-        alert("বোনাস যোগ করতে সমস্যা হয়েছে।");
-      }
+    let userState = {
+      name: currentUserName,
+      balance: 0,
+      completedTasks: [],
+      adsWatched: 0,
+      lastDaily: ""
     };
 
-    window.completeTask = async (taskId, reward, url) => {
-      try {
-        const snap = await getDoc(userRef);
-        if (!snap.exists()) return;
+    document.getElementById("userId").textContent = currentUserId;
+    document.getElementById("userName").textContent = currentUserName;
+    document.getElementById("refLinkInput").value = `https://t.me/Fireearnbdbot?startapp=${currentUserId}`;
 
-        const tasks = snap.data().completedTasks || [];
-        if (tasks.includes(taskId)) {
-          alert("এই কাজটি আগেই সম্পন্ন করেছেন!");
-          return;
-        }
+    const userRef = db.collection("users").doc(currentUserId);
 
-        const isChannelTask = taskId === "task1" || (url && url.includes("t.me/FireEarnbd7"));
-        const openedAt = Date.now();
-
-        if (url) {
-          if (isChannelTask && tg && typeof tg.openTelegramLink === "function") {
-            tg.openTelegramLink(url);
-          } else {
-            window.open(url, "_blank");
-          }
-        }
-
-        if (isChannelTask) {
-          alert("চ্যানেলে জয়েন করে অন্তত ৮ সেকেন্ড অপেক্ষা করুন, তারপর ফিরে এসে জয়েন নিশ্চিত করুন।");
-          await new Promise((resolve) => {
-            const onReturn = () => {
-              if (document.visibilityState === "visible") {
-                document.removeEventListener("visibilitychange", onReturn);
-                resolve();
-              }
-            };
-            document.addEventListener("visibilitychange", onReturn);
-            setTimeout(() => {
-              document.removeEventListener("visibilitychange", onReturn);
-              resolve();
-            }, 12000);
-          });
-
-          if (Date.now() - openedAt < MIN_CHANNEL_STAY_MS) {
-            alert("চ্যানেলে জয়েন না করে বা খুব দ্রুত ফিরে আসায় পুরস্কার যোগ হয়নি। অনুগ্রহ করে চ্যানেলে জয়েন করে আবার চেষ্টা করুন।");
-            return;
-          }
-
-          const confirmedJoin = confirm("আপনি কি https://t.me/FireEarnbd7 চ্যানেলে সত্যিই জয়েন করেছেন?");
-          if (!confirmedJoin) {
-            alert("চ্যানেলে জয়েন না করলে পুরস্কার যোগ হবে না।");
-            return;
-          }
-        }
-
-        tasks.push(taskId);
-        await updateDoc(userRef, {
-          balance: increment(reward),
-          completedTasks: tasks
-        });
-        alert(`কাজ সম্পন্ন! +${reward} টাকা যোগ হয়েছে।`);
-        await refreshUI();
-      } catch (err) {
-        console.error("completeTask error:", err);
-        alert("টাস্ক আপডেট করতে সমস্যা হয়েছে।");
-      }
-    };
-
-    window.watchAd = async () => {
-      if (adBusy) {
-        alert("আগে একটি বিজ্ঞাপন চলছে, অনুগ্রহ করে অপেক্ষা করুন।");
-        return;
-      }
-
-      const keyId = getAdKeyId();
-      const today = getTodayStr();
-      let count = getTodayAdCount();
-
-      if (count >= DAILY_AD_LIMIT) {
-        alert(`আজকের ${DAILY_AD_LIMIT}টি অ্যাড দেখার লিমিট শেষ! বাকি টাস্কগুলো আনলক আছে।`);
-        updateAdAndLockUI();
-        return;
-      }
-
-      if (typeof window.show_12325695 !== "function") {
-        alert("বিজ্ঞাপন স্ক্রিপ্ট এখনো লোড হয়নি। নেট বা অ্যাডব্লকার চেক করে একটু পর আবার চেষ্টা করুন।");
-        return;
-      }
-
-      adBusy = true;
-      const startedAt = Date.now();
-
-      try {
-        const result = await window.show_12325695({
-          ymid: keyId,
-          requestVar: "watch_ad_task"
-        });
-        const elapsedMs = Date.now() - startedAt;
-
-        if (result && result.reward_event_type === "valued" && elapsedMs >= MIN_AD_VIEW_MS) {
-          count += 1;
-          localStorage.setItem("adDate_" + keyId, today);
-          localStorage.setItem("adCount_" + keyId, String(count));
-
-          if (keyId !== "guest" && typeof db !== "undefined") {
-            await updateDoc(doc(db, "users", keyId), {
-              balance: increment(AD_REWARD)
-            });
-            await refreshUI();
-          }
-
-          updateAdAndLockUI();
-          alert(`পুরো অ্যাড দেখা শেষ! +${AD_REWARD.toFixed(2)} টাকা যোগ হয়েছে (${count}/${DAILY_AD_LIMIT})`);
-        } else {
-          alert("বিঙ্হাপন না দেখায় পুরস্কার যোগ হয় নি দয়া করে পুরো টা দেখুন");
-        }
-      } catch (err) {
-        console.error("Ad error:", err);
-        alert("বিঙ্হাপন না দেখায় পুরস্কার যোগ হয় নি দয়া করে পুরো টা দেখুন");
-      } finally {
-        adBusy = false;
-      }
-    };
-
-    window.openMiniTask = function (type) {
-      if (isTaskBusy) return;
-
-      if (!isTasksUnlocked()) {
-        const count = getTodayAdCount();
-        const left = DAILY_AD_LIMIT - count;
-        alert(`আগে আজকের ${DAILY_AD_LIMIT}টি বিজ্ঞাপন শেষ করুন! বাকি টাস্ক খুলতে আরও ${left}টি অ্যাড দেখতে হবে (${count}/${DAILY_AD_LIMIT})।`);
-        updateAdAndLockUI();
-        return;
-      }
-
-      if (getUserTaskCount(type) >= DAILY_TASK_LIMIT) {
-        alert(`আজকের ${DAILY_TASK_LIMIT}টি লিমিট শেষ!`);
-        return;
-      }
-
-      activeTaskType = type;
-      const modal = document.getElementById("miniTaskModal");
-      const titleEl = document.getElementById("miniTaskTitle");
-      const qEl = document.getElementById("miniTaskQuestion");
-      const inputArea = document.getElementById("miniTaskInputArea");
-      document.getElementById("miniTaskStatus").innerText = "";
-      inputArea.innerHTML = `<input id="miniTaskAnswerInput" type="text" placeholder="উত্তর লিখুন" style="width:100%; padding:10px; border-radius:8px; border:1px solid #30363d; background:#0d1117; color:#fff; box-sizing:border-box;" />`;
-
-      const rateStr = TASK_REWARD.toFixed(2);
-
-      if (type === "math") {
-        const a = Math.floor(Math.random() * 20) + 1;
-        const b = Math.floor(Math.random() * 20) + 1;
-        currentAnswer = String(a + b);
-        titleEl.innerText = `Math Solve (+${rateStr} টাকা)`;
-        qEl.innerText = `${a} + ${b} = ?`;
-      } else if (type === "captcha") {
-        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        let code = "";
-        for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
-        currentAnswer = code;
-        titleEl.innerText = `Captcha Solve (+${rateStr} টাকা)`;
-        qEl.innerHTML = `<span style="letter-spacing:4px; user-select:none;">${code}</span>`;
+    // Real-time Firestore Listener
+    userRef.onSnapshot((docSnap) => {
+      if (docSnap.exists) {
+        const data = docSnap.data();
+        userState = {
+          name: data.name || currentUserName,
+          balance: Number(data.balance || 0),
+          completedTasks: Array.isArray(data.completedTasks) ? data.completedTasks : [],
+          adsWatched: Number(data.adsWatched || 0),
+          lastDaily: data.lastDaily || ""
+        };
       } else {
-        const item = quizBank[Math.floor(Math.random() * quizBank.length)];
-        currentAnswer = item.a.trim().toLowerCase();
-        titleEl.innerText = `Quiz (+${rateStr} টাকা)`;
-        qEl.innerText = item.q;
-      }
-
-      modal.style.display = "flex";
-    };
-
-    window.closeMiniTask = function () {
-      if (isTaskBusy) return;
-      document.getElementById("miniTaskModal").style.display = "none";
-      activeTaskType = null;
-    };
-
-    window.submitMiniTask = async function () {
-      if (isTaskBusy || !activeTaskType) return;
-
-      if (!isTasksUnlocked()) {
-        alert(`আগে আজকের ${DAILY_AD_LIMIT}টি বিজ্ঞাপন শেষ করুন!`);
-        closeMiniTask();
-        return;
-      }
-
-      const type = activeTaskType;
-      if (getUserTaskCount(type) >= DAILY_TASK_LIMIT) {
-        alert(`আজকের ${DAILY_TASK_LIMIT}টি লিমিট শেষ!`);
-        closeMiniTask();
-        return;
-      }
-
-      const ans = (document.getElementById("miniTaskAnswerInput")?.value || "").trim();
-      const statusEl = document.getElementById("miniTaskStatus");
-      const btn = document.getElementById("miniTaskSubmitBtn");
-
-      if (!ans) {
-        statusEl.style.color = "#f85149";
-        statusEl.innerText = "আগে উত্তর লিখুন!";
-        return;
-      }
-
-      isTaskBusy = true;
-      btn.disabled = true;
-      statusEl.style.color = "#58a6ff";
-      statusEl.innerText = "লোডিং হচ্ছে...";
-      await new Promise((r) => setTimeout(r, 2000));
-
-      const ok = type === "captcha"
-        ? ans.toUpperCase() === currentAnswer.toUpperCase()
-        : ans.toLowerCase() === currentAnswer.toLowerCase();
-
-      if (!ok) {
-        isTaskBusy = false;
-        btn.disabled = false;
-        statusEl.style.color = "#f85149";
-        statusEl.innerText = "উত্তর ভুল হয়েছে!";
-        return;
-      }
-
-      try {
-        const uid = getAdKeyId();
-        if (uid !== "guest" && typeof db !== "undefined") {
-          await updateDoc(doc(db, "users", uid), { balance: increment(TASK_REWARD) });
-          await refreshUI();
-        }
-        incrementUserTaskCount(type);
-        statusEl.style.color = "#3fb950";
-        statusEl.innerText = "সঠিক উত্তর! রিওয়ার্ড যোগ হয়েছে।";
-        isTaskBusy = false;
-        btn.disabled = false;
-        closeMiniTask();
-      } catch (e) {
-        console.error(e);
-        isTaskBusy = false;
-        btn.disabled = false;
-        statusEl.style.color = "#f85149";
-        statusEl.innerText = "সমস্যা হয়েছে, আবার চেষ্টা করুন।";
-      }
-    };
-
-    window.copyRef = async () => {
-      try {
-        if (!refLinkEl || !refLinkEl.value) return;
-        refLinkEl.select();
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(refLinkEl.value);
-        } else {
-          document.execCommand("copy");
-        }
-        alert("রেফারেল লিংক কপি হয়েছে!");
-      } catch (err) {
-        alert("লিংক কপি করা যায়নি, ম্যানুয়ালি কপি করুন।");
-      }
-    };
-
-    window.submitWithdraw = async () => {
-      try {
-        const method = document.getElementById("method")?.value || "Bkash";
-        const number = document.getElementById("accountNum")?.value?.trim() || "";
-        const amount = Number(document.getElementById("withdrawAmount")?.value || 0);
-
-        const snap = await getDoc(userRef);
-        if (!snap.exists()) return;
-
-        const currentBal = Number(snap.data().balance || 0);
-
-        if (!number || number.length < 11 || isNaN(amount) || amount < 200) {
-          alert("সঠিক নম্বর (অন্তত ১১ ডিজিট) দিন এবং কমপক্ষে ২০০ টাকা লিখুন।");
-          return;
-        }
-
-        if (amount > currentBal) {
-          alert("আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই!");
-          return;
-        }
-
-        await updateDoc(userRef, {
-          balance: increment(-amount)
+        userRef.set({
+          name: currentUserName,
+          balance: 0,
+          completedTasks: [],
+          adsWatched: 0,
+          lastDaily: "",
+          referredBy: "",
+          createdAt: new Date().toISOString()
         });
-
-        await addDoc(collection(db, "withdrawals"), {
-          userId: userId,
-          name: user.first_name || "User",
-          method: method,
-          number: number,
-          amount: amount,
-          status: "Pending",
-          date: new Date().toISOString()
-        });
-
-        const BOT_TOKEN = "9033467245:AAGJTmt1Fvl4aCGkV_eiWqX7wvj3j5BSR4s";
-        const ADMIN_CHAT_ID = "8592698219";
-
-        const notifyText =
-          `🔔 নতুন উইথড্র রিকোয়েস্ট!\n` +
-          `নাম: ${user.first_name || "User"}\n` +
-          `ID: ${userId}\n` +
-          `মেথড: ${method}\n` +
-          `নম্বর: ${number}\n` +
-          `পরিমাণ: ${amount} টাকা\n` +
-          `স্ট্যাটাস: Pending`;
-
-        try {
-          await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              chat_id: ADMIN_CHAT_ID,
-              text: notifyText
-            })
-          });
-        } catch (notifyErr) {
-          console.error("Telegram notify error:", notifyErr);
-        }
-
-        if (msgEl) {
-          msgEl.innerText = "উইথড্র রিকোয়েস্ট সফলভাবে জমা হয়েছে (Pending)।";
-        }
-        alert("আপনার উইথড্র রিকোয়েস্ট জমা হয়েছে!");
-        await refreshUI();
-      } catch (err) {
-        console.error("submitWithdraw error:", err);
-        alert("উইথড্র জমা দিতে সমস্যা হয়েছে।");
       }
-    };
+      renderUI();
+      document.getElementById("statusText").textContent = "Firebase যুক্ত আছে ✓";
+    }, (err) => {
+      console.error(err);
+      document.getElementById("statusText").textContent = "Firebase সংযোগ চেক করুন";
+    });
 
-    updateTaskLimitLabels();
-    updateAdAndLockUI();
-    initUser();
+    function renderUI() {
+      const cleanBalance = Number(userState.balance.toFixed(2));
+      document.getElementById("balanceVal").textContent = cleanBalance.toFixed(2);
+      document.getElementById("adCounterTag").textContent = `অ্যাড: ${userState.adsWatched}/50`;
+
+      const channelBtn = document.getElementById("btn-channel");
+      if (userState.completedTasks.includes("channel_join")) {
+        channelBtn.textContent = "সম্পন্ন";
+        channelBtn.classList.add("done");
+      }
+
+      const sponsorBtn = document.getElementById("btn-sponsor1");
+      if (userState.completedTasks.includes("sponsor_task_1")) {
+        sponsorBtn.textContent = "সম্পন্ন";
+        sponsorBtn.classList.add("done");
+      }
+    }
+
+    async function addReward(amount, taskId = null, extraUpdate = {}) {
+      const nextBalance = Number((userState.balance + amount).toFixed(2));
+      const updatePayload = {
+        balance: nextBalance,
+        ...extraUpdate
+      };
+      if (taskId && !userState.completedTasks.includes(taskId)) {
+        updatePayload.completedTasks = firebase.firestore.FieldValue.arrayUnion(taskId);
+      }
+      await userRef.set(updatePayload, { merge: true });
+    }
+
+    async function claimDailyBonus() {
+      const today = new Date().toDateString();
+      if (userState.lastDaily === today) {
+        alert("আজকের ডেইলি বোনাস ইতিমধ্যে নেওয়া হয়েছে!");
+        return;
+      }
+      await addReward(5, null, { lastDaily: today });
+      alert("অভিনন্দন! ডেইলি বোনাস +৳5.00 যোগ হয়েছে।");
+    }
+
+    async function handleAdTask() {
+      if (userState.adsWatched >= 50) {
+        alert("আজকের ৫০টি বিজ্ঞাপন দেখা শেষ হয়েছে!");
+        return;
+      }
+      alert("বিজ্ঞাপন লোড হচ্ছে... ১০ সেকেন্ড অপেক্ষা করুন।");
+      setTimeout(async () => {
+        await addReward(0.10, null, { adsWatched: userState.adsWatched + 1 });
+        alert("বিজ্ঞাপন সম্পন্ন! +৳0.10 যোগ হয়েছে।");
+      }, 2000);
+    }
+
+    function startChannelTask() {
+      if (userState.completedTasks.includes("channel_join")) {
+        alert("এই চ্যানেল টাস্কটি আপনি আগেই সম্পন্ন করেছেন।");
+        return;
+      }
+      const channelUrl = "https://t.me/FireEarnbd7";
+      if (tg && tg.openTelegramLink) {
+        tg.openTelegramLink(channelUrl);
+      } else {
+        window.open(channelUrl, "_blank");
+      }
+
+      const startTime = Date.now();
+      setTimeout(async () => {
+        const elapsedSec = (Date.now() - startTime) / 1000;
+        if (elapsedSec >= 8) {
+          await addReward(10, "channel_join");
+          alert("চ্যানেল ভিজিট যাচাই সম্পন্ন! +৳10.00 যোগ হয়েছে।");
+        }
+      }, 8200);
+    }
+
+    async function startQuizTask(type, title) {
+      const a = Math.floor(Math.random() * 9) + 1;
+      const b = Math.floor(Math.random() * 9) + 1;
+      const ans = prompt(`${title}: ${a} + ${b} = কত?`);
+      if (ans === null) return;
+      if (Number(ans) === a + b) {
+        await addReward(0.50);
+        alert("সঠিক উত্তর! +৳0.50 যোগ হয়েছে।");
+      } else {
+        alert("ভুল উত্তর হয়েছে, আবার চেষ্টা করুন।");
+      }
+    }
+
+    function startSponsorTask() {
+      if (userState.completedTasks.includes("sponsor_task_1")) {
+        alert("এই স্পন্সর টাস্কটি আপনি আগেই সম্পন্ন করেছেন।");
+        return;
+      }
+      window.open("https://t.me/Fireearnbdbot", "_blank");
+      setTimeout(async () => {
+        await addReward(2.00, "sponsor_task_1");
+        alert("স্পন্সর টাস্ক সম্পন্ন! +৳2.00 যোগ হয়েছে।");
+      }, 5000);
+    }
+
+    function copyRefLink() {
+      const input = document.getElementById("refLinkInput");
+      input.select();
+      navigator.clipboard?.writeText(input.value);
+      alert("রেফার লিংক কপি করা হয়েছে!");
+    }
+
+    function scrollToRef() {
+      document.getElementById("refSection").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function openSupport() {
+      const supportUrl = "https://t.me/FireEarnbd7";
+      if (tg && tg.openTelegramLink) {
+        tg.openTelegramLink(supportUrl);
+      } else {
+        window.open(supportUrl, "_blank");
+      }
+    }
+
+    function openWithdrawModal() {
+      document.getElementById("withdrawModal").classList.add("open");
+    }
+
+    function closeWithdrawModal() {
+      document.getElementById("withdrawModal").classList.remove("open");
+    }
+
+    async function submitWithdraw() {
+      const method = document.getElementById("withdrawMethod").value;
+      const number = document.getElementById("withdrawNumber").value.trim();
+      const amount = Number(document.getElementById("withdrawAmount").value);
+
+      if (!number || amount < 200) {
+        alert("সঠিক নম্বর দিন এবং মিনিমাম ২০০ টাকা লিখুন।");
+        return;
+      }
+      if (amount > userState.balance) {
+        alert("আপনার পর্যাপ্ত ব্যালেন্স নেই!");
+        return;
+      }
+
+      const newBalance = Number((userState.balance - amount).toFixed(2));
+      await db.collection("withdrawals").add({
+        userId: currentUserId,
+        name: currentUserName,
+        method,
+        number,
+        amount,
+        status: "Pending",
+        createdAt: new Date().toISOString()
+      });
+      await userRef.set({ balance: newBalance }, { merge: true });
+
+      closeWithdrawModal();
+      alert("উইথড্র রিকোয়েস্ট সফলভাবে জমা হয়েছে!");
+    }
   </script>
 </body>
   </html>
